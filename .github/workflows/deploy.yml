@@ -24,7 +24,6 @@ jobs:
             --exclude='.git/' \
             --exclude='.github/' \
             --exclude='.claude/' \
-            --exclude='tasks/' \
             --exclude='.env' \
             --exclude='orders.db' \
             --exclude='orders.db-shm' \
@@ -38,8 +37,6 @@ jobs:
           ssh -i ~/.ssh/id_ed25519 root@${{ secrets.VPS_HOST }} << 'EOF'
             set -e
             cd /var/www/droztukas
-            # rsync ran as root, so newly-synced files are root-owned. Hand
-            # them back to the service user before touching node_modules.
             chown -R droztukas:droztukas /var/www/droztukas
             sudo -u droztukas npm ci --omit=dev
             systemctl restart droztukas
