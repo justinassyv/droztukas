@@ -1,0 +1,844 @@
+<!doctype html>
+<html lang="lt">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Drožtukas 68mm — gipskartonio dėžučių įleidimo įrankis</title>
+<meta name="description" content="Profesionalus 68mm drožtukas elektros dėžutėms įleisti į gipskartonio plokštes. Sutaupysite valandas ruošdami sienas dažymui." />
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<style>
+  :root{
+    --bg: #F4F1EC;
+    --bg-2: #ECE7DE;
+    --paper: #FFFFFF;
+    --ink: #141414;
+    --ink-2: #2A2926;
+    --muted: #6E6A62;
+    --line: #D9D3C7;
+    --line-2: #E5DFD3;
+    --accent: #1554F0;       /* electric blue, nods to the blue install box */
+    --accent-ink: #0A2A8A;
+    --warn: #C2410C;
+    --ok: #157347;
+    --radius: 14px;
+    --maxw: 1240px;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    font-family: 'Inter', -apple-system, system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    -webkit-font-smoothing: antialiased;
+    line-height: 1.55;
+    font-size: 16px;
+  }
+  h1,h2,h3,h4{font-family:'Space Grotesk', 'Inter', sans-serif; letter-spacing:-0.01em; line-height:1.1; margin:0; color:var(--ink)}
+  h1{font-size: clamp(40px, 6vw, 76px); font-weight:700; letter-spacing:-0.02em}
+  h2{font-size: clamp(28px, 3.6vw, 46px); font-weight:600; letter-spacing:-0.015em}
+  h3{font-size: 22px; font-weight:600}
+  p{margin:0}
+  a{color:inherit}
+  .mono{font-family:'JetBrains Mono', monospace; font-feature-settings:"ss01"}
+  .container{max-width:var(--maxw); margin:0 auto; padding:0 28px}
+  .eyebrow{
+    font-family:'JetBrains Mono', monospace;
+    font-size: 12px; letter-spacing:0.12em; text-transform: uppercase;
+    color: var(--muted);
+  }
+  .btn{
+    display:inline-flex; align-items:center; justify-content:center; gap:10px;
+    padding: 14px 22px; border-radius: 999px; font-weight:600; font-size:15px;
+    text-decoration:none; cursor:pointer; border:1px solid transparent;
+    transition: transform .15s ease, background .2s ease, border-color .2s ease;
+    white-space: nowrap;
+  }
+  .btn-primary{background:var(--ink); color:#fff}
+  .btn-primary:hover{background:#000; transform: translateY(-1px)}
+  .btn-ghost{background:transparent; color:var(--ink); border-color:var(--line)}
+  .btn-ghost:hover{border-color:var(--ink)}
+  .btn-accent{background:var(--accent); color:#fff}
+  .btn-accent:hover{background:var(--accent-ink)}
+  .pill{
+    display:inline-flex; align-items:center; gap:8px;
+    padding:6px 12px; border:1px solid var(--line); border-radius:999px;
+    font-size:12px; color:var(--ink-2); background: rgba(255,255,255,.5);
+    font-family:'JetBrains Mono', monospace; letter-spacing:0.04em;
+  }
+  .dot{width:6px; height:6px; border-radius:999px; background:var(--ok); display:inline-block}
+
+  /* --- Top bar --- */
+  .topbar{
+    position: sticky; top: 0; z-index: 50;
+    background: rgba(244,241,236,0.85);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--line);
+  }
+  .topbar-inner{display:flex; align-items:center; justify-content:space-between; height:64px}
+  .brand{display:flex; align-items:center; gap:10px; font-weight:700; letter-spacing:-0.01em}
+  .brand-mark{
+    width:34px; height:34px; border-radius:8px; background: var(--ink); color:#fff;
+    display:grid; place-items:center; font-family:'Space Grotesk'; font-weight:700; font-size:16px;
+  }
+  .nav{display:flex; gap:28px; font-size:14px; color:var(--ink-2)}
+  .nav a{text-decoration:none}
+  .nav a:hover{color:var(--ink)}
+  @media (max-width: 760px){ .nav{display:none} }
+
+  /* --- Hero --- */
+  .hero{padding: 56px 0 40px}
+  .hero-grid{display:grid; grid-template-columns: 1.05fr 1fr; gap: 56px; align-items:center}
+  @media (max-width: 960px){ .hero-grid{grid-template-columns: 1fr; gap: 32px} }
+  .hero h1 .accent{
+    background: linear-gradient(180deg, transparent 62%, color-mix(in oklch, var(--accent) 35%, transparent) 62%);
+    padding: 0 4px;
+  }
+  .hero-sub{color:var(--muted); font-size: 18px; max-width: 540px; margin-top: 22px}
+  .hero-ctas{display:flex; gap:12px; margin-top: 28px; flex-wrap:wrap}
+  .hero-meta{display:flex; gap: 22px; flex-wrap:wrap; margin-top: 32px; padding-top:24px; border-top:1px solid var(--line)}
+  .hero-meta .item{font-size:13px}
+  .hero-meta .k{color:var(--muted); font-family:'JetBrains Mono', monospace; font-size:11px; letter-spacing:0.08em; text-transform:uppercase}
+  .hero-meta .v{font-weight:600; margin-top:4px; font-size:15px}
+
+  .hero-visual{
+    position:relative; aspect-ratio: 4/3.4;
+    background: linear-gradient(160deg, #ECE7DE 0%, #DDD6C5 100%);
+    border-radius: var(--radius);
+    overflow:hidden; border:1px solid var(--line);
+  }
+  .hero-visual img{
+    position:absolute; inset:0; width:100%; height:100%; object-fit:cover;
+  }
+  .hero-tag{
+    position:absolute; left:18px; top:18px; z-index:2;
+  }
+  .hero-stamp{
+    position:absolute; right:18px; bottom:18px; z-index:2;
+    background: rgba(20,20,20,0.92); color:#fff;
+    padding: 10px 14px; border-radius: 10px;
+    font-family:'JetBrains Mono', monospace; font-size:11px; letter-spacing:0.06em;
+    display:flex; flex-direction:column; gap:2px;
+  }
+  .hero-stamp b{font-size:18px; font-family:'Space Grotesk'; letter-spacing:-0.01em}
+
+  /* --- Marquee strip --- */
+  .strip{
+    border-top:1px solid var(--line); border-bottom:1px solid var(--line);
+    background: var(--bg-2);
+    overflow:hidden;
+  }
+  .strip-track{
+    display:flex; gap: 56px;
+    padding: 14px 0;
+    font-family:'JetBrains Mono', monospace; font-size:12px; letter-spacing:0.12em; text-transform:uppercase;
+    color: var(--ink-2);
+    white-space:nowrap;
+    animation: marquee 38s linear infinite;
+    width: max-content;
+  }
+  .strip-track span{display:inline-flex; align-items:center; gap:14px}
+  .strip-track .sep{width:6px; height:6px; background:var(--ink); border-radius:999px; opacity:.4}
+  @keyframes marquee{
+    from{transform:translateX(0)}
+    to{transform:translateX(-50%)}
+  }
+
+  /* --- Section base --- */
+  section{padding: 88px 0}
+  @media (max-width: 760px){ section{padding: 64px 0} }
+  .section-head{display:flex; align-items:flex-end; justify-content:space-between; gap:32px; margin-bottom: 48px}
+  .section-head .lead{max-width:520px}
+  @media (max-width: 760px){ .section-head{flex-direction:column; align-items:flex-start} }
+
+  /* --- Problem / Solution --- */
+  .ps{display:grid; grid-template-columns: 1fr 1fr; gap: 0; border:1px solid var(--line); border-radius: var(--radius); overflow:hidden; background:var(--paper)}
+  @media (max-width: 760px){ .ps{grid-template-columns: 1fr} }
+  .ps-col{padding: 32px}
+  .ps-col + .ps-col{border-left:1px solid var(--line)}
+  @media (max-width: 760px){ .ps-col + .ps-col{border-left:none; border-top:1px solid var(--line)} }
+  .ps-col h3{margin-top:14px; margin-bottom:10px}
+  .ps-col ul{list-style:none; padding:0; margin: 16px 0 0; display:flex; flex-direction:column; gap:10px}
+  .ps-col li{font-size:15px; color:var(--ink-2); display:flex; gap:10px; align-items:flex-start}
+  .ps-col .ico{flex-shrink:0; width:18px; height:18px; margin-top:2px}
+
+  /* --- Features --- */
+  .features{display:grid; grid-template-columns: repeat(3, 1fr); gap: 16px}
+  @media (max-width: 960px){ .features{grid-template-columns: repeat(2, 1fr)} }
+  @media (max-width: 600px){ .features{grid-template-columns: 1fr} }
+  .feature{
+    background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius);
+    padding: 28px; min-height: 230px; display:flex; flex-direction:column; gap: 14px;
+    transition: border-color .2s ease, transform .2s ease;
+  }
+  .feature:hover{border-color: var(--ink); transform: translateY(-2px)}
+  .feature .num{font-family:'JetBrains Mono', monospace; font-size:11px; color:var(--muted); letter-spacing:0.1em}
+  .feature h3{font-size: 20px}
+  .feature p{font-size: 14.5px; color: var(--muted); line-height:1.55}
+  .feature .ico-box{
+    width:46px; height:46px; border-radius:10px; background: var(--bg-2);
+    display:grid; place-items:center; border:1px solid var(--line);
+  }
+
+  /* --- How it works --- */
+  .steps{display:grid; grid-template-columns: repeat(4, 1fr); gap: 20px; counter-reset: step}
+  @media (max-width: 960px){ .steps{grid-template-columns: repeat(2, 1fr)} }
+  @media (max-width: 520px){ .steps{grid-template-columns: 1fr} }
+  .step{
+    background: var(--paper); border:1px solid var(--line); border-radius: var(--radius);
+    padding: 24px; position:relative;
+  }
+  .step .n{
+    font-family:'Space Grotesk'; font-weight:700; font-size: 36px;
+    color: var(--accent); letter-spacing:-0.02em;
+  }
+  .step h3{font-size:17px; margin-top:6px; margin-bottom:6px}
+  .step p{font-size:14px; color:var(--muted)}
+  .step-illu{
+    margin-top:14px; height: 96px; border-radius: 8px;
+    background: var(--bg-2); border:1px dashed var(--line);
+    display:grid; place-items:center;
+  }
+
+  /* --- Showcase image --- */
+  .showcase{
+    display:grid; grid-template-columns: 1.3fr 1fr; gap:18px;
+  }
+  @media (max-width: 880px){ .showcase{grid-template-columns: 1fr} }
+  .show-tile{
+    border:1px solid var(--line); border-radius:var(--radius); overflow:hidden;
+    aspect-ratio: 4/3; position:relative; background: var(--bg-2);
+  }
+  .show-tile img{width:100%; height:100%; object-fit:cover; display:block}
+  .show-tile.tall{aspect-ratio: 4/5}
+  .show-cap{
+    position:absolute; left:14px; bottom:14px; right:14px;
+    display:flex; justify-content:space-between; gap:10px;
+    color:#fff;
+    background: linear-gradient(180deg, transparent, rgba(0,0,0,.55));
+    padding:30px 12px 8px; border-radius:0 0 8px 8px;
+    font-family:'JetBrains Mono', monospace; font-size:11px; letter-spacing:0.06em; text-transform:uppercase;
+  }
+  .show-side{display:flex; flex-direction:column; gap:18px}
+  .show-side .show-tile{aspect-ratio: 16/11}
+
+  /* --- Specs --- */
+  .specs{
+    display:grid; grid-template-columns: 1.2fr 1fr; gap: 28px;
+    background: var(--ink); color:#EFEAE0; border-radius: var(--radius);
+    padding: 40px; align-items:center;
+  }
+  @media (max-width: 880px){ .specs{grid-template-columns: 1fr; padding: 28px} }
+  .specs h2{color:#fff}
+  .specs .table{
+    background: rgba(255,255,255,0.04); border-radius: 12px; border:1px solid rgba(255,255,255,0.08);
+    overflow:hidden;
+  }
+  .specs .row{
+    display:grid; grid-template-columns: 1fr 1.2fr; gap:12px;
+    padding: 14px 18px; border-top: 1px solid rgba(255,255,255,0.06);
+    font-size: 14.5px;
+  }
+  .specs .row:first-child{border-top:none}
+  .specs .k{color:#A8A296; font-family:'JetBrains Mono', monospace; font-size:12px; letter-spacing:0.06em; text-transform:uppercase}
+  .specs .v{color:#F0EAD9; font-weight:500}
+
+  /* --- Testimonials --- */
+  .quotes{display:grid; grid-template-columns: repeat(3, 1fr); gap: 16px}
+  @media (max-width: 960px){ .quotes{grid-template-columns: 1fr} }
+  .quote{
+    background: var(--paper); border:1px solid var(--line); border-radius: var(--radius);
+    padding: 26px; display:flex; flex-direction:column; gap: 16px;
+  }
+  .stars{color: #E8A100; font-size:14px; letter-spacing:1px}
+  .quote p{font-size:15.5px; color: var(--ink-2); line-height:1.55}
+  .who{display:flex; align-items:center; gap:12px; margin-top:auto}
+  .avatar{width:38px; height:38px; border-radius:999px; background: var(--bg-2); display:grid; place-items:center; font-weight:600; font-size:14px; border:1px solid var(--line)}
+  .who .nm{font-weight:600; font-size:14px}
+  .who .role{font-size:12.5px; color:var(--muted)}
+
+  /* --- FAQ --- */
+  .faq{border-top:1px solid var(--line)}
+  .faq details{
+    border-bottom:1px solid var(--line); padding: 22px 0;
+  }
+  .faq summary{
+    cursor:pointer; list-style:none;
+    display:flex; justify-content:space-between; align-items:center; gap:20px;
+    font-family:'Space Grotesk'; font-size: 19px; font-weight:600;
+  }
+  .faq summary::-webkit-details-marker{display:none}
+  .faq summary::after{
+    content:"+"; font-family:'JetBrains Mono', monospace; font-size: 22px; color:var(--muted);
+    transition: transform .2s ease;
+  }
+  .faq details[open] summary::after{content:"−"}
+  .faq p{margin-top: 12px; color:var(--ink-2); font-size: 15px; max-width: 780px}
+
+  /* --- Order section --- */
+  .order-wrap{
+    background: var(--paper); border:1px solid var(--line); border-radius: var(--radius);
+    padding: 0; overflow:hidden;
+    display:grid; grid-template-columns: 1fr 1.1fr;
+  }
+  @media (max-width: 960px){ .order-wrap{grid-template-columns: 1fr} }
+  .order-side{
+    background: var(--bg-2);
+    padding: 40px;
+    display:flex; flex-direction:column; gap: 18px;
+    border-right: 1px solid var(--line);
+  }
+  @media (max-width: 960px){ .order-side{border-right:none; border-bottom:1px solid var(--line)} }
+  .price{
+    display:flex; align-items:baseline; gap:10px; margin-top:8px;
+  }
+  .price .amt{font-family:'Space Grotesk'; font-weight:700; font-size: 56px; letter-spacing:-0.02em}
+  .price .cur{font-family:'JetBrains Mono', monospace; font-size:14px; color:var(--muted)}
+  .price .old{font-size:18px; color:var(--muted); text-decoration: line-through}
+  .badge-row{display:flex; gap:8px; flex-wrap:wrap}
+  .badge{
+    display:inline-flex; align-items:center; gap:6px;
+    background:#fff; border:1px solid var(--line); border-radius:8px;
+    padding: 8px 12px; font-size:13px; font-weight:500;
+  }
+  .order-side ul{list-style:none; padding:0; margin: 8px 0 0; display:flex; flex-direction:column; gap:10px; font-size:14.5px}
+  .order-side li{display:flex; gap:10px; color:var(--ink-2)}
+  .order-form{padding: 40px}
+  .order-form h3{margin-bottom:6px; font-size: 24px}
+  .order-form .form-sub{color:var(--muted); font-size:14.5px; margin-bottom: 22px}
+  .field{display:flex; flex-direction:column; gap:6px; margin-bottom: 14px}
+  .field label{font-size:13px; font-weight:500; color:var(--ink-2)}
+  .field .req{color: var(--warn); margin-left:2px}
+  .field input, .field select, .field textarea{
+    font: inherit; padding: 12px 14px; border:1px solid var(--line);
+    border-radius: 10px; background:#fff; color:var(--ink);
+    transition: border-color .2s ease, box-shadow .2s ease;
+  }
+  .field input:focus, .field select:focus, .field textarea:focus{
+    outline:none; border-color: var(--ink);
+    box-shadow: 0 0 0 3px rgba(20,20,20,0.06);
+  }
+  .field textarea{resize:vertical; min-height: 90px}
+  .row2{display:grid; grid-template-columns: 1fr 1fr; gap:14px}
+  @media (max-width: 520px){ .row2{grid-template-columns: 1fr} }
+  .qty{
+    display:flex; align-items:stretch; border:1px solid var(--line); border-radius: 10px;
+    background:#fff; overflow:hidden; width:fit-content;
+  }
+  .qty button{
+    border:none; background:transparent; width:42px; cursor:pointer; font-size:18px;
+    font-family:'Space Grotesk'; color:var(--ink); transition: background .15s ease;
+  }
+  .qty button:hover{background:var(--bg-2)}
+  .qty input{
+    border:none; width: 60px; text-align:center; font: inherit; padding: 10px 0;
+    -moz-appearance:textfield;
+  }
+  .qty input::-webkit-outer-spin-button, .qty input::-webkit-inner-spin-button{-webkit-appearance:none; margin:0}
+  .delivery{display:flex; flex-direction:column; gap:8px; margin-bottom:14px}
+  .delivery label{
+    display:flex; gap:12px; align-items:flex-start;
+    border:1px solid var(--line); border-radius: 10px; padding: 12px 14px; cursor:pointer;
+    background:#fff; transition: border-color .15s ease, background .15s ease;
+  }
+  .delivery label:hover{border-color: var(--ink)}
+  .delivery input[type=radio]{margin-top:3px; accent-color: var(--ink)}
+  .delivery .opt-title{font-weight:600; font-size:14.5px; display:flex; justify-content:space-between; gap:10px}
+  .delivery .opt-sub{font-size:12.5px; color:var(--muted); margin-top:2px}
+  .delivery label.sel{border-color: var(--ink); background: var(--bg-2)}
+  .checkbox{display:flex; gap:10px; align-items:flex-start; font-size:13px; color:var(--ink-2); margin: 6px 0 16px}
+  .checkbox input{margin-top:3px; accent-color:var(--ink)}
+  .order-total{
+    display:flex; justify-content:space-between; align-items:baseline;
+    padding: 14px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line);
+    margin: 6px 0 18px; font-family:'JetBrains Mono', monospace; font-size:13px; letter-spacing:0.04em;
+  }
+  .order-total b{font-family:'Space Grotesk'; font-size: 28px; font-weight:700; letter-spacing:-0.01em}
+  .submit{width:100%; padding: 16px; font-size: 15.5px}
+  .form-foot{font-size:12px; color:var(--muted); text-align:center; margin-top:12px}
+  .err{font-size:12.5px; color: var(--warn); margin-top:4px}
+  .invalid{border-color: var(--warn) !important}
+
+  .success{
+    text-align:center; padding: 48px 28px;
+  }
+  .success .check{
+    width:64px; height:64px; border-radius:999px; background: var(--ok); color:#fff;
+    display:grid; place-items:center; margin: 0 auto 18px;
+  }
+  .success h3{font-size:26px; margin-bottom:8px}
+  .success p{color:var(--muted); max-width: 420px; margin: 0 auto}
+  .order-num{
+    display:inline-block; margin-top:18px;
+    background:var(--bg-2); border:1px solid var(--line);
+    padding: 8px 14px; border-radius: 8px;
+    font-family:'JetBrains Mono', monospace; font-size: 13px;
+  }
+
+  /* --- Footer --- */
+  footer{
+    border-top:1px solid var(--line); padding: 56px 0 36px; margin-top: 40px;
+    background: var(--bg-2);
+  }
+  .foot-grid{display:grid; grid-template-columns: 1.4fr 1fr 1fr 1fr; gap: 32px}
+  @media (max-width: 760px){ .foot-grid{grid-template-columns: 1fr 1fr} }
+  .foot-grid h4{font-size:13px; font-family:'JetBrains Mono', monospace; letter-spacing:0.08em; text-transform:uppercase; color:var(--muted); margin-bottom:14px}
+  .foot-grid a{display:block; text-decoration:none; color:var(--ink-2); font-size:14px; padding: 4px 0}
+  .foot-grid a:hover{color: var(--ink)}
+  .foot-bot{
+    margin-top: 36px; padding-top: 20px; border-top:1px solid var(--line);
+    display:flex; justify-content:space-between; gap: 16px; flex-wrap:wrap;
+    font-size:13px; color:var(--muted);
+  }
+
+  /* utility */
+  .check-ico{color: var(--ok); flex-shrink:0}
+  .x-ico{color: var(--warn); flex-shrink:0}
+
+</style>
+</head>
+<body>
+
+<!-- ───────── TOP BAR ───────── -->
+<header class="topbar">
+  <div class="container topbar-inner">
+    <a href="#" class="brand" aria-label="Drožtukas pradžia">
+      <span class="brand-mark">D</span>
+      <span>Drožtukas<span style="color:var(--muted); font-weight:500"> · 68mm</span></span>
+    </a>
+    <nav class="nav">
+      <a href="#privalumai">Privalumai</a>
+      <a href="#kaip-veikia">Kaip veikia</a>
+      <a href="#specifikacija">Specifikacija</a>
+      <a href="#atsiliepimai">Atsiliepimai</a>
+      <a href="#duk">D.U.K.</a>
+    </nav>
+    <a href="#uzsakyti" class="btn btn-primary" style="padding:10px 18px; font-size:14px">Užsakyti</a>
+  </div>
+</header>
+
+<!-- ───────── HERO ───────── -->
+<section class="hero" style="padding-top: 64px">
+  <div class="container hero-grid">
+    <div>
+      <span class="pill"><span class="dot"></span>Yra sandėlyje · siunčiame iš Lietuvos</span>
+      <h1 style="margin-top:18px">
+        Įleiskite elektros dėžutes <span class="accent">lygiai</span> su gipskartoniu — be glaisto.
+      </h1>
+      <p class="hero-sub">
+        Profesionalus 68 mm drožtukas, kuris paruošia vietą standartinėms montavimo dėžutėms taip, kad jos prigludusios prie plokštės. Nereikia papildomai špakliuoti, šlifuoti ar pjauti aplink — siena lieka švari ir paruošta dažymui.
+      </p>
+      <div class="hero-ctas">
+        <a href="#uzsakyti" class="btn btn-primary">
+          Užsakyti — 18,90 €
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 8h8m0 0L8.5 4.5M12 8l-3.5 3.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </a>
+        <a href="#kaip-veikia" class="btn btn-ghost">
+          Kaip veikia
+        </a>
+      </div>
+      <div class="hero-meta">
+        <div class="item"><div class="k">Dėžutės skersmuo</div><div class="v">Ø 68 mm</div></div>
+        <div class="item"><div class="k">Geležtės</div><div class="v">Standartinės, keičiamos</div></div>
+        <div class="item"><div class="k">Pristatymas</div><div class="v">1–2 d. d. Lietuvoje</div></div>
+        <div class="item"><div class="k">Garantija</div><div class="v">12 mėn.</div></div>
+      </div>
+    </div>
+
+    <div class="hero-visual">
+      <span class="hero-tag pill" style="background: rgba(255,255,255,0.85)">Pagaminta Lietuvoje</span>
+      <img src="assets/droztukas-carbon.webp" alt="68 mm Drožtukas — vaizdas iš arti" />
+      <div class="hero-stamp">
+        <span style="opacity:.7">Modelis</span>
+        <b>DRZ-68 · CARBON</b>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ───────── STRIP ───────── -->
+<div class="strip" aria-hidden="true">
+  <div class="strip-track">
+    <span>Skirta gipskartoniui</span><span class="sep"></span>
+    <span>Ø 68 mm dėžutėms</span><span class="sep"></span>
+    <span>Standartinės geležtės</span><span class="sep"></span>
+    <span>Profesionalams ir mėgėjams</span><span class="sep"></span>
+    <span>Pagaminta Lietuvoje</span><span class="sep"></span>
+    <span>Greitas pristatymas</span><span class="sep"></span>
+    <!-- repeat for seamless loop -->
+    <span>Skirta gipskartoniui</span><span class="sep"></span>
+    <span>Ø 68 mm dėžutėms</span><span class="sep"></span>
+    <span>Standartinės geležtės</span><span class="sep"></span>
+    <span>Profesionalams ir mėgėjams</span><span class="sep"></span>
+    <span>Pagaminta Lietuvoje</span><span class="sep"></span>
+    <span>Greitas pristatymas</span><span class="sep"></span>
+  </div>
+</div>
+
+<!-- ───────── PROBLEM / SOLUTION ───────── -->
+<section id="problema" style="padding-top: 72px">
+  <div class="container">
+    <div class="section-head">
+      <div>
+        <span class="eyebrow">Problema → sprendimas</span>
+        <h2 style="margin-top:10px">Dėžutė kyšo. Glaistas trupa. Sienos neparuoštos dažymui.</h2>
+      </div>
+      <p class="lead" style="color:var(--muted)">
+        Tradiciniai metodai reikalauja peilio, glaisto, šlifavimo — ir vis tiek lieka pėdsakų. Drožtukas pašalina šį etapą.
+      </p>
+    </div>
+
+    <div class="ps">
+      <div class="ps-col">
+        <span class="eyebrow" style="color: var(--warn)">Be drožtuko</span>
+        <h3>Lėtas, nešvarus procesas</h3>
+        <ul>
+          <li><svg class="x-ico" width="18" height="18" viewBox="0 0 20 20" fill="none"><path d="M6 6l8 8M14 6l-8 8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>Dėžutė lieka iškilusi virš plokštės paviršiaus</li>
+          <li><svg class="x-ico" width="18" height="18" viewBox="0 0 20 20" fill="none"><path d="M6 6l8 8M14 6l-8 8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>Reikia glaistyti aplink — daugiau valandų darbo</li>
+          <li><svg class="x-ico" width="18" height="18" viewBox="0 0 20 20" fill="none"><path d="M6 6l8 8M14 6l-8 8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>Glaistas kliūva špakliuojant ir dažant</li>
+          <li><svg class="x-ico" width="18" height="18" viewBox="0 0 20 20" fill="none"><path d="M6 6l8 8M14 6l-8 8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>Netvarkingi kraštai matosi po dažymo</li>
+        </ul>
+      </div>
+      <div class="ps-col" style="background: linear-gradient(180deg, #fff, #FBFAF6)">
+        <span class="eyebrow" style="color: var(--ok)">Su drožtuku</span>
+        <h3>Švarus rezultatas iš pirmo karto</h3>
+        <ul>
+          <li><svg class="check-ico" width="18" height="18" viewBox="0 0 20 20" fill="none"><path d="M4 10l4 4 8-8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Dėžutė įleidžiama lygiai su plokšte</li>
+          <li><svg class="check-ico" width="18" height="18" viewBox="0 0 20 20" fill="none"><path d="M4 10l4 4 8-8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Nereikia papildomo glaistymo aplink dėžutę</li>
+          <li><svg class="check-ico" width="18" height="18" viewBox="0 0 20 20" fill="none"><path d="M4 10l4 4 8-8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Sienos paruoštos dažymui per kelias minutes</li>
+          <li><svg class="check-ico" width="18" height="18" viewBox="0 0 20 20" fill="none"><path d="M4 10l4 4 8-8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Profesionalus, be pėdsakų rezultatas</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ───────── FEATURES ───────── -->
+<section id="privalumai">
+  <div class="container">
+    <div class="section-head">
+      <div>
+        <span class="eyebrow">Kodėl drožtukas</span>
+        <h2 style="margin-top:10px">Sukurtas vienam darbui — atliekamam tobulai.</h2>
+      </div>
+    </div>
+
+    <div class="features">
+      <div class="feature">
+        <div class="ico-box">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.6"/><path d="M12 7v5l3 2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+        </div>
+        <div class="num">01 / Greitis</div>
+        <h3>Iki 3× greičiau nei rankiniu būdu</h3>
+        <p>Vienas judesys pakeičia peilio, glaisto ir šlifavimo etapą. Idealu dideliems objektams su dešimtimis dėžučių.</p>
+      </div>
+
+      <div class="feature">
+        <div class="ico-box">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="8" stroke="currentColor" stroke-width="1.6"/><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.6"/></svg>
+        </div>
+        <div class="num">02 / Tikslumas</div>
+        <h3>Tiksliai 68 mm — be papildomų matavimų</h3>
+        <p>Konstrukcija sukurta pagal standartinį dėžutės skersmenį. Centruoja ir laiko įrankį stabiliai per visą darbą.</p>
+      </div>
+
+      <div class="feature">
+        <div class="ico-box">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M5 12l4-4M5 12l4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <div class="num">03 / Aptarnavimas</div>
+        <h3>Lengvai keičiamos geležtės</h3>
+        <p>Tinka standartiniai peiliukai, kuriuos rasite bet kurioje statybos parduotuvėje. Neaptarnaujamų vietų nėra.</p>
+      </div>
+
+      <div class="feature">
+        <div class="ico-box">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><rect x="4" y="6" width="16" height="12" rx="2" stroke="currentColor" stroke-width="1.6"/><path d="M9 6V4h6v2" stroke="currentColor" stroke-width="1.6"/></svg>
+        </div>
+        <div class="num">04 / Tvirtumas</div>
+        <h3>Atsparios medžiagos kasdieniam darbui</h3>
+        <p>Spausdintas iš tvirto polimero — atsparus smūgiams ir reguliariam profesionaliam naudojimui.</p>
+      </div>
+
+      <div class="feature">
+        <div class="ico-box">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M12 3v18M3 12h18" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+        </div>
+        <div class="num">05 / Ergonomika</div>
+        <h3>Patogu laikyti viena ranka</h3>
+        <p>Forma sukurta taip, kad ranka neslidinėtų net dirbant ilgesnį laiką. Pritaikyta abiems rankoms.</p>
+      </div>
+
+      <div class="feature">
+        <div class="ico-box">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M4 7h16M4 12h16M4 17h10" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+        </div>
+        <div class="num">06 / Universalumas</div>
+        <h3>Tinka mėgėjams ir profesionalams</h3>
+        <p>Naudojimas paprastas — nereikia patirties. Tačiau profesionalas įvertins detales kasdieniame darbe.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ───────── HOW IT WORKS ───────── -->
+<section id="kaip-veikia" style="background: var(--bg-2); border-top:1px solid var(--line); border-bottom:1px solid var(--line)">
+  <div class="container">
+    <div class="section-head">
+      <div>
+        <span class="eyebrow">Procesas · 4 žingsniai</span>
+        <h2 style="margin-top:10px">Nuo dėžutės iki paruoštos sienos — per minutę.</h2>
+      </div>
+      <p class="lead" style="color:var(--muted)">Tas pats darbas, kuriam anksčiau prireikdavo peilio, glaisto, šlifavimo ir laukimo, kol viskas išdžius.</p>
+    </div>
+
+    <div class="steps">
+      <div class="step">
+        <div class="n">01</div>
+        <h3>Pridėkite</h3>
+        <p>Uždėkite drožtuką ant 68 mm dėžutės plokštumos.</p>
+        <div class="step-illu" aria-hidden="true">
+          <svg width="80" height="60" viewBox="0 0 80 60" fill="none">
+            <rect x="6" y="20" width="68" height="20" fill="#E5DFD3" stroke="#B8B0A0" stroke-width="1"/>
+            <circle cx="40" cy="30" r="9" fill="#1554F0" opacity=".25"/>
+            <circle cx="40" cy="30" r="9" stroke="#1554F0" stroke-width="1.4" stroke-dasharray="2 2"/>
+            <path d="M40 8v8M36 12l4 4 4-4" stroke="#141414" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+      </div>
+      <div class="step">
+        <div class="n">02</div>
+        <h3>Pasukite</h3>
+        <p>Sukite įrankį ratu — geležtė pjauna gipskartonį.</p>
+        <div class="step-illu" aria-hidden="true">
+          <svg width="80" height="60" viewBox="0 0 80 60" fill="none">
+            <circle cx="40" cy="30" r="16" stroke="#141414" stroke-width="1.6"/>
+            <path d="M40 14a16 16 0 0 1 14 8" stroke="#1554F0" stroke-width="2" stroke-linecap="round"/>
+            <path d="M55 18l-1 6-6-1" stroke="#1554F0" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+            <rect x="36" y="26" width="8" height="8" fill="#141414"/>
+          </svg>
+        </div>
+      </div>
+      <div class="step">
+        <div class="n">03</div>
+        <h3>Pašalinkite</h3>
+        <p>Išimkite atplyšusį žiedą — vieta paruošta įleisti dėžutę.</p>
+        <div class="step-illu" aria-hidden="true">
+          <svg width="80" height="60" viewBox="0 0 80 60" fill="none">
+            <circle cx="40" cy="30" r="14" stroke="#B8B0A0" stroke-width="1.4" stroke-dasharray="3 3"/>
+            <path d="M28 30h24" stroke="#141414" stroke-width="1.6" stroke-linecap="round"/>
+            <path d="M55 24l4-4-4-4" stroke="#141414" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+      </div>
+      <div class="step">
+        <div class="n">04</div>
+        <h3>Įleiskite</h3>
+        <p>Dėžutė įsistato lygiai. Siena paruošta dažymui.</p>
+        <div class="step-illu" aria-hidden="true">
+          <svg width="80" height="60" viewBox="0 0 80 60" fill="none">
+            <rect x="6" y="20" width="68" height="20" fill="#E5DFD3" stroke="#B8B0A0" stroke-width="1"/>
+            <circle cx="40" cy="30" r="9" fill="#1554F0"/>
+            <circle cx="40" cy="30" r="6" fill="#0A2A8A"/>
+            <path d="M62 26l3 3-3 3" stroke="#157347" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M65 29h-7" stroke="#157347" stroke-width="1.4" stroke-linecap="round"/>
+          </svg>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ───────── SHOWCASE ───────── -->
+<section>
+  <div class="container">
+    <div class="section-head">
+      <div>
+        <span class="eyebrow">Galerija</span>
+        <h2 style="margin-top:10px">Įrankis ir rezultatas.</h2>
+      </div>
+    </div>
+
+    <div class="showcase">
+      <div class="show-tile">
+        <img src="assets/droztukas-real.webp" alt="Drožtukas — realus vaizdas su geležte" />
+        <div class="show-cap"><span>Drožtukas · su geležte</span><span>01 / 04</span></div>
+      </div>
+      <div class="show-side">
+        <div class="show-tile">
+          <img src="assets/box-installed.webp" alt="Įleista 68 mm elektros dėžutė gipskartonio plokštėje" />
+          <div class="show-cap"><span>Įleista dėžutė</span><span>02 / 04</span></div>
+        </div>
+        <div class="show-tile">
+          <img src="assets/droztukas-white.webp" alt="Drožtukas — baltas variantas" />
+          <div class="show-cap"><span>Variantas · WHITE</span><span>03 / 04</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ───────── SPECS ───────── -->
+<section id="specifikacija">
+  <div class="container">
+    <div class="specs">
+      <div>
+        <span class="eyebrow" style="color:#A8A296">Techninė informacija</span>
+        <h2 style="margin-top:10px">Techninė<br/>specifikacija.</h2>
+        <p style="color:#C8C2B5; margin-top:18px; font-size:15px; max-width: 380px">
+          Visi matmenys ir parametrai patikrinti realiomis statybvietės sąlygomis. Geležtė ir varžtai pakeičiami atsuktuvu.
+        </p>
+      </div>
+      <div class="table">
+        <div class="row"><span class="k">Dėžutės skersmuo</span><span class="v">Ø 68 mm (standartinis)</span></div>
+        <div class="row"><span class="k">Įleidimo gylis</span><span class="v">Iki 12 mm gipskartonio</span></div>
+        <div class="row"><span class="k">Geležtė</span><span class="v">Standartinė, keičiama</span></div>
+        <div class="row"><span class="k">Tvirtinimas</span><span class="v">2× kryžminiai varžtai</span></div>
+        <div class="row"><span class="k">Korpuso medžiaga</span><span class="v">PETG / PA polimeras</span></div>
+        <div class="row"><span class="k">Svoris</span><span class="v">≈ 80 g</span></div>
+        <div class="row"><span class="k">Spalvos</span><span class="v">Carbon · Grafitas · White</span></div>
+        <div class="row"><span class="k">Garantija</span><span class="v">12 mėn. gamintojo</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ───────── TESTIMONIALS ───────── -->
+<section id="atsiliepimai">
+  <div class="container">
+    <div class="section-head">
+      <div>
+        <span class="eyebrow">Klientų atsiliepimai</span>
+        <h2 style="margin-top:10px">Naudoja statybininkai visoje Lietuvoje.</h2>
+      </div>
+      <div style="display:flex; align-items:center; gap:12px">
+        <div class="stars">★★★★★</div>
+        <div style="font-size:14px"><b>4,9 / 5</b> · 230+ atsiliepimų</div>
+      </div>
+    </div>
+
+    <div class="quotes">
+      <div class="quote">
+        <div class="stars">★★★★★</div>
+        <p>„Įrankis kainą atperka per pirmą objektą. Anksčiau dėžutes glaistydavau po dvi valandas — dabar tas pats darbas užtrunka penkiolika minučių."</p>
+        <div class="who"><div class="avatar">M</div><div><div class="nm">Mantas K.</div><div class="role">Apdailininkas · Vilnius</div></div></div>
+      </div>
+      <div class="quote">
+        <div class="stars">★★★★★</div>
+        <p>„Pirkau iš pradžių vieną pabandyti — užsisakiau dar tris brigadai. Geležtės keičiamos, korpusas tvirtas, viskas paprasta."</p>
+        <div class="who"><div class="avatar">A</div><div><div class="nm">Andrius P.</div><div class="role">Statybų brigados vadovas · Kaunas</div></div></div>
+      </div>
+      <div class="quote">
+        <div class="stars">★★★★★</div>
+        <p>„Nesu profesionalas, dariau remontą sau. Su drožtuku dėžutės atsisėdo lygiai iš pirmo karto — neglaisčiau visai."</p>
+        <div class="who"><div class="avatar">R</div><div><div class="nm">Rasa V.</div><div class="role">Klientė · Klaipėda</div></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ───────── ORDER ───────── -->
+<section id="uzsakyti" style="background: var(--bg-2); border-top:1px solid var(--line)">
+  <div class="container">
+    <div class="section-head">
+      <div>
+        <span class="eyebrow">Užsakymo forma</span>
+        <h2 style="margin-top:10px">Pateikite užsakymą — susisieksime per 1 d. d.</h2>
+      </div>
+      <p class="lead" style="color:var(--muted)">
+        Nemokami pristatymai užsakymams nuo 50 €. Atsiskaityti galima pavedimu arba grynaisiais pristatant.
+      </p>
+    </div>
+
+    <div id="order-root"></div>
+  </div>
+</section>
+
+<!-- ───────── FAQ ───────── -->
+<section id="duk">
+  <div class="container">
+    <div class="section-head">
+      <div>
+        <span class="eyebrow">D.U.K.</span>
+        <h2 style="margin-top:10px">Dažniausi klausimai.</h2>
+      </div>
+    </div>
+
+    <div class="faq">
+      <details open>
+        <summary>Ar drožtukas tinka tik 68 mm dėžutėms?</summary>
+        <p>Taip — šis modelis sukurtas standartinėms 68 mm skersmens elektros montavimo dėžutėms, kurios yra naudojamos absoliučioje daugumoje gyvenamųjų ir komercinių objektų Lietuvoje.</p>
+      </details>
+      <details>
+        <summary>Kokias geležtes galiu naudoti?</summary>
+        <p>Tinka standartiniai trapeciniai peiliukai (kanceliarinio peilio tipo), kuriuos rasite beveik visose statybinių medžiagų parduotuvėse. Tvirtinami dviem kryžminiais varžtais.</p>
+      </details>
+      <details>
+        <summary>Kaip greitai pristatomas užsakymas?</summary>
+        <p>Užsakymai pateikti iki 14:00 d. d. išsiunčiami tą pačią dieną. Lietuvos teritorijoje pristatymas vyksta 1–2 darbo dienomis per LP Express paštomatus arba kurjeriu.</p>
+      </details>
+      <details>
+        <summary>Ar gausiu PVM sąskaitą faktūrą?</summary>
+        <p>Taip — užsakymo formoje nurodykite, kad reikia sąskaitos, ir pateikite įmonės rekvizitus. Sąskaitą atsiųsime el. paštu kartu su užsakymo patvirtinimu.</p>
+      </details>
+      <details>
+        <summary>Kokia produkto garantija?</summary>
+        <p>Suteikiame 12 mėnesių gamintojo garantiją gamykliniams defektams. Geležtės ir varžtai yra eksploatacinės dalys ir garantija jiems netaikoma.</p>
+      </details>
+      <details>
+        <summary>Ar galima užsisakyti didmena?</summary>
+        <p>Taip. Užsakymams nuo 10 vnt. siūlome didmeninę kainą. Užsakymo formoje nurodykite reikiamą kiekį arba rašykite tiesiogiai į <b>info@droztukas.lt</b>.</p>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- ───────── FOOTER ───────── -->
+<footer>
+  <div class="container">
+    <div class="foot-grid">
+      <div>
+        <div class="brand" style="margin-bottom: 12px"><span class="brand-mark">D</span><span>Drožtukas · 68mm</span></div>
+        <p style="font-size:14px; color:var(--muted); max-width: 320px">
+          Įrankis, sukurtas profesionaliems apdailininkams ir mėgėjams Lietuvoje.
+          Pagaminta ir siunčiama iš Vilniaus.
+        </p>
+      </div>
+      <div>
+        <h4>Produktas</h4>
+        <a href="#privalumai">Privalumai</a>
+        <a href="#specifikacija">Specifikacija</a>
+        <a href="#kaip-veikia">Kaip veikia</a>
+      </div>
+      <div>
+        <h4>Pagalba</h4>
+        <a href="#duk">D.U.K.</a>
+        <a href="#uzsakyti">Užsakymas</a>
+        <a href="#">Pristatymas</a>
+        <a href="#">Grąžinimai</a>
+      </div>
+      <div>
+        <h4>Kontaktai</h4>
+        <a href="mailto:info@droztukas.lt">info@droztukas.lt</a>
+        <a href="tel:+37060000000">+370 600 00 000</a>
+        <a href="#">Vilnius, Lietuva</a>
+      </div>
+    </div>
+    <div class="foot-bot">
+      <div>© 2026 Drožtukas. Visos teisės saugomos.</div>
+      <div style="display:flex; gap:18px"><a href="#">Privatumo politika</a><a href="#">Taisyklės</a></div>
+    </div>
+  </div>
+</footer>
+
+<!-- ───────── REACT ORDER FORM ───────── -->
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script type="text/babel" src="order-form.jsx"></script>
+
+</body>
+</html>

@@ -1,0 +1,10 @@
+node_modules/
+orders.json
+orders.json.*.bak
+orders.db
+orders.db-journal
+orders.db-wal
+orders.db-shm
+.env
+.DS_Store
+npm-debug.log

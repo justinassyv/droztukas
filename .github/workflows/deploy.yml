@@ -1,0 +1,48 @@
+name: Deploy to VPS
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup SSH key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.VPS_SSH_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Deploy to VPS
+        run: |
+          rsync -avz --delete \
+            --exclude='node_modules' \
+            --exclude='.git/' \
+            --exclude='.github/' \
+            --exclude='.claude/' \
+            --exclude='tasks/' \
+            --exclude='.env' \
+            --exclude='orders.db' \
+            --exclude='orders.db-shm' \
+            --exclude='orders.db-wal' \
+            --exclude='orders.db-journal' \
+            -e "ssh -i ~/.ssh/id_ed25519" \
+            ./ root@${{ secrets.VPS_HOST }}:/var/www/droztukas/
+
+      - name: Install deps and restart service
+        run: |
+          ssh -i ~/.ssh/id_ed25519 root@${{ secrets.VPS_HOST }} << 'EOF'
+            set -e
+            cd /var/www/droztukas
+            # rsync ran as root, so newly-synced files are root-owned. Hand
+            # them back to the service user before touching node_modules.
+            chown -R droztukas:droztukas /var/www/droztukas
+            sudo -u droztukas npm ci --omit=dev
+            systemctl restart droztukas
+            systemctl --no-pager status droztukas | head -n 10
+            echo "Deploy complete."
+          EOF

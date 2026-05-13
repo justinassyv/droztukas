@@ -1,0 +1,23 @@
+[Unit]
+Description=Drožtukas web server
+After=network.target
+
+[Service]
+Type=simple
+User=droztukas
+WorkingDirectory=/var/www/droztukas
+EnvironmentFile=/var/www/droztukas/.env
+ExecStart=/usr/bin/node server.js
+Restart=on-failure
+RestartSec=3
+StandardOutput=journal
+StandardError=journal
+
+# Hardening
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=true
+
+[Install]
+WantedBy=multi-user.target

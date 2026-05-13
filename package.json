@@ -1,0 +1,20 @@
+{
+  "name": "droztukas",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Drožtukas 68mm landing page + order form server",
+  "main": "server.js",
+  "scripts": {
+    "start": "node --env-file-if-exists=.env server.js"
+  },
+  "engines": {
+    "node": ">=20.12"
+  },
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "better-sqlite3": "^12.9.0",
+    "express": "^4.21.2",
+    "express-session": "^1.19.0",
+    "nodemailer": "^8.0.7"
+  }
+}
