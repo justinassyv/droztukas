@@ -148,6 +148,8 @@ app.use(
     setHeaders: (res, filePath) => {
       if (/\.(webp|png|jpe?g|svg|ico|woff2?)$/i.test(filePath)) {
         res.setHeader("Cache-Control", "public, max-age=2592000, immutable");
+      } else if (/\.(html|jsx)$/i.test(filePath)) {
+        res.setHeader("Cache-Control", "no-cache");
       }
     },
   }),
