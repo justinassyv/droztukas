@@ -30,12 +30,12 @@ jobs:
             --exclude='orders.db-shm' \
             --exclude='orders.db-wal' \
             --exclude='orders.db-journal' \
-            -e "ssh -o StrictHostKeyChecking=no" \
+            -e "ssh" \
             ./ root@${{ secrets.VPS_HOST }}:/var/www/droztukas/
 
       - name: Install deps and restart service
         run: |
-          ssh -o StrictHostKeyChecking=no root@${{ secrets.VPS_HOST }} << 'EOF'
+          ssh root@${{ secrets.VPS_HOST }} <<'EOF'
             set -e
             cd /var/www/droztukas
             chown -R droztukas:droztukas /var/www/droztukas
