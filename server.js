@@ -30,7 +30,7 @@ if (!ADMIN_CONFIGURED) {
   );
 }
 
-const UNIT_PRICE = 18.9;
+const UNIT_PRICE = 12.0;
 const FREE_SHIPPING_THRESHOLD = 50;
 const DELIVERY_OPTIONS = {
   "lp-paststomatas": { title: "LP Express paštomatas", price: 2.99 },
