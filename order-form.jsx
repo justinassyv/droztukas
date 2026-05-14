@@ -1,6 +1,6 @@
 const { useState, useMemo } = React;
 
-const UNIT_PRICE = 18.90;
+const UNIT_PRICE = 12.00;
 const DELIVERY_OPTIONS = [
   { id: "lp-paststomatas", title: "LP Express paštomatas", sub: "1–2 d. d. · visa Lietuva", price: 2.99 },
   { id: "kurjeris", title: "Kurjeris į namus", sub: "1–2 d. d. · adresu", price: 4.99 },
