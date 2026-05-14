@@ -40,6 +40,7 @@ jobs:
             cd /var/www/droztukas
             chown -R droztukas:droztukas /var/www/droztukas
             sudo -u droztukas npm ci --omit=dev
+            fuser -k 3000/tcp || true
             systemctl restart droztukas
             systemctl --no-pager status droztukas | head -n 10
             echo "Deploy complete."
