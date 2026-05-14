@@ -20,7 +20,7 @@ jobs:
 
       - name: Deploy to VPS
         run: |
-          rsync -avz --delete \
+          rsync -avzc --delete \
             --exclude='node_modules' \
             --exclude='.git/' \
             --exclude='.github/' \
