@@ -163,7 +163,7 @@ function OrderForm() {
           <ul>
             <li>
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{ marginTop: 3, flexShrink: 0 }}><path d="M3 8l4 4 6-8" stroke="var(--ok)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
-              Drožtuko korpusas (Ø 68 mm)
+              Drožtukas (Ø 68 mm)
             </li>
           </ul>
         </div>
