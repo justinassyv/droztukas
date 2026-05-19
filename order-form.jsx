@@ -165,18 +165,6 @@ function OrderForm() {
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{ marginTop: 3, flexShrink: 0 }}><path d="M3 8l4 4 6-8" stroke="var(--ok)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
               Drožtuko korpusas (Ø 68 mm)
             </li>
-            <li>
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{ marginTop: 3, flexShrink: 0 }}><path d="M3 8l4 4 6-8" stroke="var(--ok)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
-              Trapecinė geležtė (1 vnt.)
-            </li>
-            <li>
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{ marginTop: 3, flexShrink: 0 }}><path d="M3 8l4 4 6-8" stroke="var(--ok)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
-              Tvirtinimo varžtai (2 vnt.)
-            </li>
-            <li>
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{ marginTop: 3, flexShrink: 0 }}><path d="M3 8l4 4 6-8" stroke="var(--ok)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
-              Naudojimo instrukcija (LT)
-            </li>
           </ul>
         </div>
       </aside>
