@@ -224,6 +224,8 @@
   }
   .show-side{display:flex; flex-direction:column; gap:18px}
   .show-side .show-tile{aspect-ratio: 16/11}
+  .show-row{display:flex; gap:18px}
+  .show-row .show-tile{flex:1}
 
   /* --- Specs --- */
   .specs{
@@ -664,11 +666,13 @@
         <img src="assets/gallery-2.jpg" alt="Drožtukas — realus vaizdas su geležte" />
       </div>
       <div class="show-side">
-        <div class="show-tile">
-          <img src="assets/gallery-1.jpg" alt="Įleista 68 mm elektros dėžutė gipskartonio plokštėje" />
-        </div>
-        <div class="show-tile">
-          <img src="assets/gallery-3.jpg" alt="Drožtukas — detalus vaizdas" />
+        <div class="show-row">
+          <div class="show-tile">
+            <img src="assets/gallery-1.jpg" alt="Įleista 68 mm elektros dėžutė gipskartonio plokštėje" />
+          </div>
+          <div class="show-tile">
+            <img src="assets/gallery-3.jpg" alt="Drožtukas — detalus vaizdas" />
+          </div>
         </div>
         <div class="show-tile">
           <img src="assets/droztukas-white.webp" alt="Drožtukas — baltas variantas" />
