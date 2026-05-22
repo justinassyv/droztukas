@@ -244,6 +244,19 @@ function getStats({ topLimit = 10 } = {}) {
   };
 }
 
+const deleteOldDoneStmt = db.prepare(`
+  DELETE FROM orders
+  WHERE status = 'done'
+    AND updatedAt < datetime('now', '-10 days')
+`);
+
+function purgeOldCompletedOrders() {
+  const result = deleteOldDoneStmt.run();
+  if (result.changes > 0) {
+    console.log("[db] purged " + result.changes + " completed order(s) older than 10 days");
+  }
+}
+
 module.exports = {
   insertOrder,
   listOrders,
@@ -252,4 +265,5 @@ module.exports = {
   VALID_STATUSES,
   recordPageView,
   getStats,
+  purgeOldCompletedOrders,
 };

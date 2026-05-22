@@ -393,3 +393,7 @@ app.use((_req, res) => res.status(404).type("text/plain").send("Not found"));
 app.listen(PORT, HOST, () => {
   console.log("Drožtukas server listening on http://" + HOST + ":" + PORT);
 });
+
+// Purge completed orders older than 10 days — runs once at startup then every 24h
+db.purgeOldCompletedOrders();
+setInterval(db.purgeOldCompletedOrders, 24 * 60 * 60 * 1000);
