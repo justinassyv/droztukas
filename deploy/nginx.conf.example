@@ -1,7 +1,7 @@
 server {
     listen 80;
     listen [::]:80;
-    server_name droztukas.lt www.droztukas.lt;
+    server_name drozk.lt www.drozk.lt;
 
     # certbot will rewrite this to redirect to HTTPS once you run it
     location / {
