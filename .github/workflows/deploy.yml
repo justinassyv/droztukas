@@ -10,7 +10,8 @@ jobs:
     permissions:
       contents: read
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        run: git clone --depth 1 https://github.com/justinassyv/droztukas.git .
 
       - name: Setup SSH key
         run: |
