@@ -3,4 +3,4 @@ Allow: /
 Disallow: /admin
 Disallow: /api/
 
-Sitemap: https://droztukas.lt/sitemap.xml
+Sitemap: https://drozk.lt/sitemap.xml
