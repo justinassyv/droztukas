@@ -4,7 +4,25 @@ const crypto = require("crypto");
 const nodemailer = require("nodemailer");
 const session = require("express-session");
 const bcrypt = require("bcryptjs");
-const WebToPay = require("libwebtopay");
+// Paysera WebToPay protocol — implemented with built-in crypto (no extra dep)
+const PAYSERA_GATEWAY = "https://www.paysera.com/pay/";
+function _p64enc(s) { return Buffer.from(s).toString("base64").replace(/\+/g, "-").replace(/\//g, "_"); }
+function _p64dec(s) { return Buffer.from(s.replace(/-/g, "+").replace(/_/g, "/"), "base64").toString("utf8"); }
+function _pSign(data, pwd) { return crypto.createHash("md5").update(data + pwd).digest("hex"); }
+function payseraBuildUrl(params) {
+  const qs = new URLSearchParams(params).toString();
+  const data = _p64enc(qs);
+  const sign = _pSign(data, PAYSERA_SIGN_PASSWORD);
+  return PAYSERA_GATEWAY + "?" + new URLSearchParams({ data, sign }).toString();
+}
+function payseraValidate(query) {
+  const { data, ss1 } = query;
+  if (!data || !ss1) throw new Error("Missing data or ss1");
+  if (_pSign(data, PAYSERA_SIGN_PASSWORD) !== ss1) throw new Error("Signature mismatch");
+  const params = Object.fromEntries(new URLSearchParams(_p64dec(data)));
+  if (String(params.projectid) !== String(PAYSERA_PROJECT_ID)) throw new Error("Project ID mismatch");
+  return params;
+}
 
 const db = require("./db");
 
@@ -286,9 +304,8 @@ app.post("/api/order", async (req, res) => {
 
     let paymentUrl;
     try {
-      paymentUrl = await WebToPay.buildRequestUrlFromParams({
+      paymentUrl = payseraBuildUrl({
         projectid: PAYSERA_PROJECT_ID,
-        sign_password: PAYSERA_SIGN_PASSWORD,
         orderid: order.num,
         amount: Math.round(order.total * 100),
         currency: "EUR",
@@ -308,7 +325,7 @@ app.post("/api/order", async (req, res) => {
         p_countrycode: "LT",
       });
     } catch (err) {
-      console.error("[paysera] buildRequestUrl failed:", err.message);
+      console.error("[paysera] buildUrl failed:", err.message);
       return res.status(500).json({ ok: false, error: "Mokėjimo sistema laikinai nepasiekiama. Bandykite dar kartą." });
     }
 
@@ -341,16 +358,12 @@ app.get("/payment/cancel", (_req, res) =>
   res.sendFile(path.join(ROOT, "payment-cancel.html"))
 );
 
-app.get("/payment/callback", async (req, res) => {
+app.get("/payment/callback", (req, res) => {
   if (!PAYSERA_ENABLED) return res.status(503).send("NOT_CONFIGURED");
 
   let data;
   try {
-    data = await WebToPay.validateAndParseData(
-      req.query,
-      PAYSERA_PROJECT_ID,
-      PAYSERA_SIGN_PASSWORD
-    );
+    data = payseraValidate(req.query);
   } catch (err) {
     console.error("[paysera] callback validation failed:", err.message);
     return res.status(400).send("FAIL");
