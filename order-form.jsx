@@ -323,7 +323,7 @@ function OrderForm() {
 
         <label className="checkbox" style={{ marginBottom: 4 }}>
           <input type="checkbox" checked={agree} onChange={(e) => setAgree(e.target.checked)} className={errors.agree ? "invalid" : ""} />
-          <span>Sutinku su <a href="/taisykles.html" target="_blank" style={{ color: "var(--ink)", textDecoration: "underline" }}>pirkimo taisyklėmis</a> ir <a href="#" style={{ color: "var(--ink)", textDecoration: "underline" }}>privatumo politika</a>.</span>
+          <span>Sutinku su <a href="/taisykles.html" target="_blank" style={{ color: "var(--ink)", textDecoration: "underline" }}>pirkimo taisyklėmis</a> ir <a href="/grazinimo-salygos.html" target="_blank" style={{ color: "var(--ink)", textDecoration: "underline" }}>grąžinimo sąlygos</a>.</span>
         </label>
         {errors.agree && <div className="err" style={{ marginTop: -4, marginBottom: 10 }}>{errors.agree}</div>}
 
