@@ -10,6 +10,19 @@ const db = new Database(DB_FILE);
 db.pragma("journal_mode = WAL");
 db.pragma("synchronous = NORMAL");
 
+// Migrations: add payment columns if missing
+{
+  const cols = db.prepare("PRAGMA table_info(orders)").all().map((c) => c.name);
+  if (!cols.includes("paid_at")) {
+    db.exec("ALTER TABLE orders ADD COLUMN paid_at TEXT");
+    console.log("[db] migrated: added paid_at column");
+  }
+  if (!cols.includes("paysera_ref")) {
+    db.exec("ALTER TABLE orders ADD COLUMN paysera_ref TEXT");
+    console.log("[db] migrated: added paysera_ref column");
+  }
+}
+
 db.exec(`
   CREATE TABLE IF NOT EXISTS page_views (
     id         INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -244,6 +257,16 @@ function getStats({ topLimit = 10 } = {}) {
   };
 }
 
+const markPaidStmt = db.prepare(
+  "UPDATE orders SET paid_at = ?, paysera_ref = ?, updatedAt = ? WHERE num = ?"
+);
+
+function markOrderPaid(num, payseraRef) {
+  const now = new Date().toISOString();
+  markPaidStmt.run(now, payseraRef || null, now, num);
+  return getOrder(num);
+}
+
 const deleteOldDoneStmt = db.prepare(`
   DELETE FROM orders
   WHERE status = 'done'
@@ -262,6 +285,7 @@ module.exports = {
   listOrders,
   getOrder,
   setStatus,
+  markOrderPaid,
   VALID_STATUSES,
   recordPageView,
   getStats,

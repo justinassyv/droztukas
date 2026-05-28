@@ -4,6 +4,7 @@ const crypto = require("crypto");
 const nodemailer = require("nodemailer");
 const session = require("express-session");
 const bcrypt = require("bcryptjs");
+const WebToPay = require("libwebtopay");
 
 const db = require("./db");
 
@@ -11,6 +12,16 @@ const PORT = Number(process.env.PORT) || 3000;
 const HOST = process.env.HOST || "0.0.0.0";
 const ROOT = __dirname;
 const NOTIFY_EMAIL = process.env.NOTIFY_EMAIL || "";
+const SITE_URL = (process.env.SITE_URL || "https://drozk.lt").replace(/\/$/, "");
+
+const PAYSERA_PROJECT_ID = process.env.PAYSERA_PROJECT_ID || "";
+const PAYSERA_SIGN_PASSWORD = process.env.PAYSERA_SIGN_PASSWORD || "";
+const PAYSERA_TEST = process.env.PAYSERA_TEST === "1" ? 1 : 0;
+const PAYSERA_ENABLED = !!(PAYSERA_PROJECT_ID && PAYSERA_SIGN_PASSWORD);
+
+if (!PAYSERA_ENABLED) {
+  console.warn("[paysera] not configured — set PAYSERA_PROJECT_ID and PAYSERA_SIGN_PASSWORD in .env");
+}
 
 const SESSION_SECRET = process.env.SESSION_SECRET || "";
 const COOKIE_SECURE = process.env.COOKIE_SECURE === "true";
@@ -267,13 +278,51 @@ app.post("/api/order", async (req, res) => {
     return res.status(500).json({ ok: false, error: "Nepavyko išsaugoti užsakymo." });
   }
 
+  // If Paysera is configured, redirect customer to payment; otherwise fall back to inquiry mode
+  if (PAYSERA_ENABLED) {
+    const nameParts = order.name.trim().split(/\s+/);
+    const firstName = nameParts[0] || order.name;
+    const lastName = nameParts.slice(1).join(" ") || "";
+
+    let paymentUrl;
+    try {
+      paymentUrl = await WebToPay.buildRequestUrlFromParams({
+        projectid: PAYSERA_PROJECT_ID,
+        sign_password: PAYSERA_SIGN_PASSWORD,
+        orderid: order.num,
+        amount: Math.round(order.total * 100),
+        currency: "EUR",
+        country: "LT",
+        lang: "LIT",
+        accepturl: SITE_URL + "/payment/success",
+        cancelurl: SITE_URL + "/payment/cancel",
+        callbackurl: SITE_URL + "/payment/callback",
+        test: PAYSERA_TEST,
+        p_firstname: firstName,
+        p_lastname: lastName,
+        p_email: order.email,
+        p_phone: order.phone,
+        p_street: order.address || "",
+        p_city: order.city || "",
+        p_zip: order.postal || "",
+        p_countrycode: "LT",
+      });
+    } catch (err) {
+      console.error("[paysera] buildRequestUrl failed:", err.message);
+      return res.status(500).json({ ok: false, error: "Mokėjimo sistema laikinai nepasiekiama. Bandykite dar kartą." });
+    }
+
+    return res.json({ ok: true, paymentUrl });
+  }
+
+  // Inquiry mode (no Paysera): notify admin immediately
   if (transporter && NOTIFY_EMAIL) {
     transporter
       .sendMail({
         from: process.env.SMTP_FROM || process.env.SMTP_USER,
         to: NOTIFY_EMAIL,
         replyTo: order.email,
-        subject: "Naujas užsakymas " + order.num + " - Drožtukas",
+        subject: "Naujas užsakymas " + order.num + " — Drožtukas",
         text: orderEmailText(order),
       })
       .catch((err) => console.error("[smtp] send failed:", err.message));
@@ -281,6 +330,57 @@ app.post("/api/order", async (req, res) => {
 
   return res.json({ ok: true, num: order.num, total: order.total });
 });
+
+// --- Paysera payment callbacks -------------------------------------------
+
+app.get("/payment/success", (_req, res) =>
+  res.sendFile(path.join(ROOT, "payment-success.html"))
+);
+
+app.get("/payment/cancel", (_req, res) =>
+  res.sendFile(path.join(ROOT, "payment-cancel.html"))
+);
+
+app.get("/payment/callback", async (req, res) => {
+  if (!PAYSERA_ENABLED) return res.status(503).send("NOT_CONFIGURED");
+
+  let data;
+  try {
+    data = await WebToPay.validateAndParseData(
+      req.query,
+      PAYSERA_PROJECT_ID,
+      PAYSERA_SIGN_PASSWORD
+    );
+  } catch (err) {
+    console.error("[paysera] callback validation failed:", err.message);
+    return res.status(400).send("FAIL");
+  }
+
+  // status 1 = payment confirmed
+  if (data.status === "1") {
+    const orderNum = data.orderid;
+    const order = db.markOrderPaid(orderNum, data.requestid || null);
+
+    if (order && transporter && NOTIFY_EMAIL) {
+      transporter
+        .sendMail({
+          from: process.env.SMTP_FROM || process.env.SMTP_USER,
+          to: NOTIFY_EMAIL,
+          replyTo: order.email,
+          subject: "Apmokėtas užsakymas " + order.num + " — Drožtukas",
+          text: "APMOKĖTA\n\n" + orderEmailText(order),
+        })
+        .catch((err) => console.error("[smtp] send failed:", err.message));
+    }
+
+    console.log("[paysera] order paid:", orderNum);
+  }
+
+  // Paysera requires exactly "OK" response
+  res.send("OK");
+});
+
+// --- end Paysera ---------------------------------------------------------
 
 // --- Admin ---------------------------------------------------------------
 

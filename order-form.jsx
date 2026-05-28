@@ -87,7 +87,11 @@ function OrderForm() {
         }
         return;
       }
-      setSubmitted({ num: data.num, total: data.total, qty });
+      if (data.paymentUrl) {
+        window.location.href = data.paymentUrl;
+      } else {
+        setSubmitted({ num: data.num, total: data.total, qty });
+      }
     } catch (err) {
       setGlobalError("Nepavyko susisiekti su serveriu. Bandykite dar kartą.");
     } finally {

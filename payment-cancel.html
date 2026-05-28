@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="lt">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Mokėjimas atšauktas — drozk.lt</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #F4F1EC;
+    --paper: #FFFFFF;
+    --ink: #141414;
+    --muted: #6E6A62;
+    --line: #D9D3C7;
+    --warn: #C0392B;
+    --radius: 14px;
+  }
+  *{box-sizing:border-box; margin:0; padding:0}
+  body{background:var(--bg); color:var(--ink); font-family:'Inter', sans-serif; font-size:16px; line-height:1.7; min-height:100vh; display:flex; align-items:center; justify-content:center; padding:24px}
+  .card{background:var(--paper); border:1px solid var(--line); border-radius:var(--radius); padding:48px 40px; max-width:480px; width:100%; text-align:center}
+  .icon{width:64px; height:64px; border-radius:50%; background:#FEF2F2; display:flex; align-items:center; justify-content:center; margin:0 auto 24px}
+  h1{font-family:'Space Grotesk', sans-serif; font-size:26px; font-weight:700; margin-bottom:12px}
+  p{color:var(--muted); font-size:15px; margin-bottom:8px}
+  .btn{display:inline-block; margin-top:32px; padding:13px 28px; background:var(--ink); color:#fff; border-radius:10px; font-family:'Inter', sans-serif; font-size:15px; font-weight:600; text-decoration:none; letter-spacing:-0.01em}
+  .btn:hover{opacity:0.85}
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="icon">
+    <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
+      <path d="M6 18L18 6M6 6l12 12" stroke="#C0392B" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </div>
+  <h1>Mokėjimas atšauktas</h1>
+  <p>Jūsų mokėjimas buvo atšauktas arba neįvykdytas.</p>
+  <p>Užsakymas išsaugotas — galite grįžti ir bandyti dar kartą.</p>
+  <a href="/#uzsakymas" class="btn">Grįžti į užsakymą</a>
+</div>
+</body>
+</html>
