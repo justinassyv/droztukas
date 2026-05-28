@@ -338,7 +338,7 @@ function OrderForm() {
         )}
 
         <button type="submit" className="btn btn-primary submit" disabled={submitting} style={submitting ? { opacity: 0.7, cursor: "wait" } : null}>
-          {submitting ? "Siunčiama…" : <>Pateikti užklausą — {formatEUR(total)}</>}
+          {submitting ? "Siunčiama…" : <>Apmokėti — {formatEUR(total)}</>}
           {!submitting && <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 8h8m0 0L8.5 4.5M12 8l-3.5 3.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg>}
         </button>
         <div className="form-foot">
