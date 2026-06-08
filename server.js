@@ -147,12 +147,18 @@ async function lpEstimateTerminalPrice(weightGrams) {
     throw new Error("LP Express price estimate failed: " + res.status + " " + body.slice(0, 300));
   }
   const json = await res.json();
-  console.log("[lpexpress] price estimate raw response (weight=" + weightGrams + "g):", JSON.stringify(json).slice(0, 800));
+  const plans = Array.isArray(json) ? json : json.data || json.plans || json.items || [];
 
-  const list = Array.isArray(json) ? json : json.data || json.plans || json.items || [];
-  const prices = list
-    .map((p) => Number(p.price ?? p.amount ?? p.value ?? (p.price && p.price.amount)))
-    .filter((n) => Number.isFinite(n) && n > 0);
+  // Response shape: [{ code: "TERMINAL", shipping: [{ options: [{ price: { amount }, size: { code } }] }] }]
+  const prices = [];
+  for (const plan of plans) {
+    for (const sh of plan.shipping || []) {
+      for (const opt of sh.options || []) {
+        const amount = opt.price && Number(opt.price.amount);
+        if (Number.isFinite(amount) && amount > 0) prices.push(amount);
+      }
+    }
+  }
   if (!prices.length) throw new Error("LP Express price estimate: no usable price in response");
 
   const price = Math.min(...prices);
