@@ -44,6 +44,11 @@ if (!PAYSERA_ENABLED) {
 // --- LP Express terminal list ---------------------------------------------
 const LPEXPRESS_USERNAME = process.env.LPEXPRESS_USERNAME || "";
 const LPEXPRESS_PASSWORD = process.env.LPEXPRESS_PASSWORD || "";
+// OAuth2 "API client" credentials issued separately from your account login —
+// look for "Client ID" / "Client Secret" (or "Consumer Key/Secret") in the
+// Mano siuntos integration/API settings.
+const LPEXPRESS_CLIENT_ID = process.env.LPEXPRESS_CLIENT_ID || "";
+const LPEXPRESS_CLIENT_SECRET = process.env.LPEXPRESS_CLIENT_SECRET || "";
 const LPEXPRESS_ENABLED = !!(LPEXPRESS_USERNAME && LPEXPRESS_PASSWORD);
 const LPEXPRESS_API = process.env.LPEXPRESS_TEST === "1"
   ? "https://api-manosiuntostst.post.lt"
@@ -68,8 +73,13 @@ async function lpGetToken() {
     password: LPEXPRESS_PASSWORD,
     scope: "read write API_CLIENT",
   });
+  const headers = {};
+  if (LPEXPRESS_CLIENT_ID || LPEXPRESS_CLIENT_SECRET) {
+    headers.Authorization = "Basic " + Buffer.from(LPEXPRESS_CLIENT_ID + ":" + LPEXPRESS_CLIENT_SECRET).toString("base64");
+  }
   const res = await fetch(LPEXPRESS_API + "/oauth/token?" + params.toString(), {
     method: "POST",
+    headers,
   });
   if (!res.ok) {
     const body = await res.text().catch(() => "");
