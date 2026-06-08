@@ -380,6 +380,9 @@ function OrderCard({ order, busy, onToggle }) {
           <span className={"pill " + (isPending ? "pill-pending" : "pill-done")}>
             {isPending ? "Laukia" : "Įvykdyta"}
           </span>
+          <span className={"pill " + (order.paid_at ? "pill-done" : "pill-pending")}>
+            {order.paid_at ? "Apmokėta" : "Laukiama apmokėjimo"}
+          </span>
           <span className="ord-time">{formatDateTime(order.createdAt)}</span>
         </div>
         <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 14, fontWeight: 600 }}>
