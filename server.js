@@ -45,7 +45,9 @@ if (!PAYSERA_ENABLED) {
 const LPEXPRESS_USERNAME = process.env.LPEXPRESS_USERNAME || "";
 const LPEXPRESS_PASSWORD = process.env.LPEXPRESS_PASSWORD || "";
 const LPEXPRESS_ENABLED = !!(LPEXPRESS_USERNAME && LPEXPRESS_PASSWORD);
-const LPEXPRESS_API = "https://api.lpexpress.lt";
+const LPEXPRESS_API = process.env.LPEXPRESS_TEST === "1"
+  ? "https://api-manosiuntostst.post.lt"
+  : "https://api-manosiuntos.post.lt";
 
 if (!LPEXPRESS_ENABLED) {
   console.warn("[lpexpress] not configured — set LPEXPRESS_USERNAME and LPEXPRESS_PASSWORD in .env");
