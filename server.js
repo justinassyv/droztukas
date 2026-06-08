@@ -106,7 +106,10 @@ async function lpFetchTerminals() {
   const res = await fetch(LPEXPRESS_API + "/api/v2/terminal/list", {
     headers: { Authorization: "Bearer " + token },
   });
-  if (!res.ok) throw new Error("LP Express terminals fetch failed: " + res.status);
+  if (!res.ok) {
+    const body = await res.text().catch(() => "");
+    throw new Error("LP Express terminals fetch failed: " + res.status + " " + body.slice(0, 300));
+  }
   const json = await res.json();
   const list = Array.isArray(json) ? json : json.data || json.terminals || [];
 
