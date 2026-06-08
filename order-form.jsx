@@ -283,7 +283,7 @@ function OrderForm() {
 
         {delivery === "lp-paststomatas" && (
           <div className="field">
-            <label>Paštomatas<span className="req">*</span></label>
+            <label>LP Express paštomatas<span className="req">*</span></label>
             <input
               type="text"
               value={terminalQuery}
