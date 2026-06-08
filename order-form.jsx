@@ -36,6 +36,8 @@ function OrderForm() {
   const [terminals, setTerminals] = useState([]);
   const [terminalsLoading, setTerminalsLoading] = useState(false);
   const [terminalQuery, setTerminalQuery] = useState("");
+  const [terminalPrice, setTerminalPrice] = useState(null);
+  const [terminalPriceLoading, setTerminalPriceLoading] = useState(false);
 
   useEffect(() => {
     if (delivery !== "lp-paststomatas" || terminals.length || terminalsLoading) return;
@@ -46,6 +48,16 @@ function OrderForm() {
       .catch(() => {})
       .finally(() => setTerminalsLoading(false));
   }, [delivery]);
+
+  useEffect(() => {
+    if (delivery !== "lp-paststomatas") return;
+    setTerminalPriceLoading(true);
+    fetch("/api/shipping-price?qty=" + qty)
+      .then((r) => r.json())
+      .then((d) => { if (d.ok) setTerminalPrice(d.price); })
+      .catch(() => {})
+      .finally(() => setTerminalPriceLoading(false));
+  }, [delivery, qty]);
 
   const filteredTerminals = useMemo(() => {
     const q = terminalQuery.trim().toLowerCase();
@@ -61,7 +73,8 @@ function OrderForm() {
 
   const deliveryOpt = DELIVERY_OPTIONS.find((d) => d.id === delivery);
   const subtotal = qty * UNIT_PRICE;
-  const shipping = subtotal >= 50 ? 0 : deliveryOpt.price;
+  const liveShippingPrice = delivery === "lp-paststomatas" && terminalPrice != null ? terminalPrice : deliveryOpt.price;
+  const shipping = subtotal >= 50 ? 0 : liveShippingPrice;
   const total = subtotal + shipping;
 
   const setField = (k, v) => setForm((f) => ({ ...f, [k]: v }));
@@ -401,7 +414,13 @@ function OrderForm() {
           <div>
             <div style={{ color: "var(--muted)" }}>{qty} × {formatEUR(UNIT_PRICE)}</div>
             <div style={{ color: "var(--muted)", marginTop: 4 }}>
-              Pristatymas: {shipping === 0 ? <span style={{ color: "var(--ok)" }}>nemokamai</span> : formatEUR(shipping)}
+              Pristatymas: {
+                subtotal >= 50
+                  ? <span style={{ color: "var(--ok)" }}>nemokamai</span>
+                  : (delivery === "lp-paststomatas" && terminalPriceLoading && terminalPrice == null)
+                    ? "skaičiuojama…"
+                    : formatEUR(shipping)
+              }
             </div>
           </div>
           <div style={{ textAlign: "right" }}>

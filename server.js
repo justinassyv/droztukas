@@ -119,6 +119,46 @@ async function lpFetchTerminals() {
   lpTerminalsCache = { data: terminals, fetchedAt: now };
   return terminals;
 }
+
+const lpPriceCache = new Map(); // weight (g) -> { price, fetchedAt }
+const LP_PRICE_TTL = 6 * 60 * 60 * 1000; // 6h
+
+// Asks LP Express for the cheapest valid terminal-to-terminal box size & price
+// for the given total parcel weight (grams), without forcing a specific size —
+// letting their pricing engine pick what's actually available/cheapest.
+async function lpEstimateTerminalPrice(weightGrams) {
+  const now = Date.now();
+  const cached = lpPriceCache.get(weightGrams);
+  if (cached && now - cached.fetchedAt < LP_PRICE_TTL) return cached.price;
+
+  const token = await lpGetToken();
+  const params = new URLSearchParams({
+    receiverCountryCode: "LT",
+    senderCountryCode: "LT",
+    parcelTypes: "T2T",
+    planCodes: "TERMINAL",
+    weight: String(weightGrams),
+  });
+  const res = await fetch(LPEXPRESS_API + "/api/v2/shipping/estimate/plan?" + params.toString(), {
+    headers: { Authorization: "Bearer " + token },
+  });
+  if (!res.ok) {
+    const body = await res.text().catch(() => "");
+    throw new Error("LP Express price estimate failed: " + res.status + " " + body.slice(0, 300));
+  }
+  const json = await res.json();
+  console.log("[lpexpress] price estimate raw response (weight=" + weightGrams + "g):", JSON.stringify(json).slice(0, 800));
+
+  const list = Array.isArray(json) ? json : json.data || json.plans || json.items || [];
+  const prices = list
+    .map((p) => Number(p.price ?? p.amount ?? p.value ?? (p.price && p.price.amount)))
+    .filter((n) => Number.isFinite(n) && n > 0);
+  if (!prices.length) throw new Error("LP Express price estimate: no usable price in response");
+
+  const price = Math.min(...prices);
+  lpPriceCache.set(weightGrams, { price, fetchedAt: now });
+  return price;
+}
 // --- end LP Express --------------------------------------------------------
 
 const SESSION_SECRET = process.env.SESSION_SECRET || "";
@@ -351,6 +391,22 @@ app.get("/api/terminals", async (_req, res) => {
   } catch (err) {
     console.error("[lpexpress] terminals failed:", err.message);
     res.status(502).json({ ok: false, error: "fetch_failed", terminals: [] });
+  }
+});
+
+const PRODUCT_UNIT_WEIGHT_G = 100; // ~100g per Drožtukas unit incl. packaging
+
+app.get("/api/shipping-price", async (req, res) => {
+  if (!LPEXPRESS_ENABLED) {
+    return res.status(503).json({ ok: false, error: "not_configured" });
+  }
+  const qty = Math.max(1, Math.min(99, parseInt(req.query.qty, 10) || 1));
+  try {
+    const price = await lpEstimateTerminalPrice(qty * PRODUCT_UNIT_WEIGHT_G);
+    res.json({ ok: true, price });
+  } catch (err) {
+    console.error("[lpexpress] price estimate failed:", err.message);
+    res.status(502).json({ ok: false, error: "estimate_failed" });
   }
 });
 
