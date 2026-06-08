@@ -433,7 +433,15 @@ app.post("/api/order", async (req, res) => {
   markRequest(ip);
 
   const subtotal = qty * UNIT_PRICE;
-  const shipping = subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : DELIVERY_OPTIONS[delivery].price;
+  let shippingPrice = DELIVERY_OPTIONS[delivery].price;
+  if (delivery === "lp-paststomatas" && subtotal < FREE_SHIPPING_THRESHOLD && LPEXPRESS_ENABLED) {
+    try {
+      shippingPrice = await lpEstimateTerminalPrice(qty * PRODUCT_UNIT_WEIGHT_G);
+    } catch (err) {
+      console.error("[lpexpress] order price estimate failed, using fallback price:", err.message);
+    }
+  }
+  const shipping = subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : shippingPrice;
   const total = Math.round((subtotal + shipping) * 100) / 100;
 
   const draft = {
