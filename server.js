@@ -105,20 +105,16 @@ async function lpFetchTerminals() {
   }
   const json = await res.json();
   const list = Array.isArray(json) ? json : json.data || json.terminals || json.content || [];
-  if (list.length) console.log("[lpexpress] sample terminal raw shape:", JSON.stringify(list[0]).slice(0, 500));
 
   const terminals = list
-    .filter((t) => (t.countryCode || t.country || "LT") === "LT")
-    .map((t) => {
-      const addr = t.address || t.location || t;
-      return {
-        id: String(t.id ?? t.code ?? t.terminalId ?? ""),
-        name: t.name || t.title || t.terminalName || addr.name || addr.title || "",
-        address: addr.street || addr.address || addr.address1 || t.address || "",
-        city: addr.locality || addr.city || addr.municipality || t.city || "",
-      };
-    })
-    .filter((t) => t.id);
+    .filter((t) => t.countryCode === "LT")
+    .map((t) => ({
+      id: String(t.id || ""),
+      name: t.name || "",
+      address: t.address || "",
+      city: t.city || "",
+    }))
+    .filter((t) => t.id && t.name);
 
   lpTerminalsCache = { data: terminals, fetchedAt: now };
   return terminals;
