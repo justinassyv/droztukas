@@ -71,7 +71,10 @@ async function lpGetToken() {
   const res = await fetch(LPEXPRESS_API + "/oauth/token?" + params.toString(), {
     method: "POST",
   });
-  if (!res.ok) throw new Error("LP Express auth failed: " + res.status);
+  if (!res.ok) {
+    const body = await res.text().catch(() => "");
+    throw new Error("LP Express auth failed: " + res.status + " " + body.slice(0, 500));
+  }
   const data = await res.json();
   if (!data.access_token) throw new Error("LP Express auth response missing access_token");
 
