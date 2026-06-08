@@ -1,4 +1,4 @@
-const { useState, useMemo } = React;
+const { useState, useMemo, useEffect } = React;
 
 const UNIT_PRICE = 12.00;
 const DELIVERY_OPTIONS = [
@@ -26,11 +26,38 @@ function OrderForm() {
     company: "",
     vat: "",
     notes: "",
+    terminalId: "",
+    terminalName: "",
   });
   const [errors, setErrors] = useState({});
   const [submitted, setSubmitted] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [globalError, setGlobalError] = useState("");
+  const [terminals, setTerminals] = useState([]);
+  const [terminalsLoading, setTerminalsLoading] = useState(false);
+  const [terminalQuery, setTerminalQuery] = useState("");
+
+  useEffect(() => {
+    if (delivery !== "lp-paststomatas" || terminals.length || terminalsLoading) return;
+    setTerminalsLoading(true);
+    fetch("/api/terminals")
+      .then((r) => r.json())
+      .then((d) => { if (d.ok) setTerminals(d.terminals || []); })
+      .catch(() => {})
+      .finally(() => setTerminalsLoading(false));
+  }, [delivery]);
+
+  const filteredTerminals = useMemo(() => {
+    const q = terminalQuery.trim().toLowerCase();
+    if (q.length < 2) return [];
+    return terminals
+      .filter((t) =>
+        t.name.toLowerCase().includes(q) ||
+        t.city.toLowerCase().includes(q) ||
+        t.address.toLowerCase().includes(q)
+      )
+      .slice(0, 12);
+  }, [terminals, terminalQuery]);
 
   const deliveryOpt = DELIVERY_OPTIONS.find((d) => d.id === delivery);
   const subtotal = qty * UNIT_PRICE;
@@ -39,14 +66,24 @@ function OrderForm() {
 
   const setField = (k, v) => setForm((f) => ({ ...f, [k]: v }));
 
+  const selectTerminal = (t) => {
+    const label = [t.name, t.address, t.city].filter(Boolean).join(", ");
+    setField("terminalId", t.id);
+    setField("terminalName", label);
+    setTerminalQuery(label);
+  };
+
   const validate = () => {
     const e = {};
     if (!form.name.trim() || form.name.trim().length < 2) e.name = "Įveskite vardą ir pavardę";
     if (!form.email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) e.email = "Neteisingas el. pašto adresas";
     if (!form.phone.replace(/\D/g, "").match(/^\d{8,}$/)) e.phone = "Įveskite telefono numerį";
-    if (delivery !== "atsiimti") {
+    if (delivery === "kurjeris") {
       if (!form.address.trim()) e.address = "Nurodykite adresą";
       if (!form.city.trim()) e.city = "Nurodykite miestą";
+    }
+    if (delivery === "lp-paststomatas") {
+      if (!form.terminalId) e.terminalId = "Pasirinkite paštomatą";
     }
     if (needInvoice) {
       if (!form.company.trim()) e.company = "Įmonės pavadinimas privalomas";
@@ -231,10 +268,58 @@ function OrderForm() {
           {errors.email && <div className="err">{errors.email}</div>}
         </div>
 
-        {delivery !== "atsiimti" && (
+        {delivery === "lp-paststomatas" && (
+          <div className="field">
+            <label>Paštomatas<span className="req">*</span></label>
+            <input
+              type="text"
+              value={terminalQuery}
+              onChange={(e) => {
+                setTerminalQuery(e.target.value);
+                if (form.terminalId) { setField("terminalId", ""); setField("terminalName", ""); }
+              }}
+              placeholder="Įveskite miestą arba pavadinimą..."
+              className={errors.terminalId ? "invalid" : ""}
+              autoComplete="off"
+            />
+            {terminalQuery.trim().length >= 2 && !form.terminalId && (
+              <div style={{ border: "1px solid var(--line)", borderRadius: 8, marginTop: 6, maxHeight: 230, overflowY: "auto", background: "#fff" }}>
+                {filteredTerminals.length === 0 && (
+                  <div style={{ padding: "10px 12px", fontSize: 13, color: "var(--muted)" }}>
+                    {terminalsLoading ? "Kraunama paštomatų sąrašas…" : "Nieko nerasta — pabandykite kitą paiešką"}
+                  </div>
+                )}
+                {filteredTerminals.map((t) => (
+                  <button
+                    type="button"
+                    key={t.id}
+                    onClick={() => selectTerminal(t)}
+                    style={{
+                      display: "block", width: "100%", textAlign: "left", padding: "10px 12px",
+                      border: "none", borderTop: "1px solid var(--line)", background: "#fff",
+                      cursor: "pointer", fontSize: 13.5, fontFamily: "inherit",
+                    }}
+                  >
+                    <div style={{ fontWeight: 600 }}>{t.name}</div>
+                    <div style={{ color: "var(--muted)" }}>{[t.address, t.city].filter(Boolean).join(", ")}</div>
+                  </button>
+                ))}
+              </div>
+            )}
+            {form.terminalId && (
+              <div style={{ marginTop: 8, fontSize: 13, color: "var(--ok)", display: "flex", alignItems: "center", gap: 6 }}>
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M3 8l4 4 6-8" stroke="var(--ok)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                Pasirinkta: {form.terminalName}
+              </div>
+            )}
+            {errors.terminalId && <div className="err">{errors.terminalId}</div>}
+          </div>
+        )}
+
+        {delivery === "kurjeris" && (
           <>
             <div className="field">
-              <label>Adresas (gatvė, namo nr.){delivery === "kurjeris" && <span className="req">*</span>}</label>
+              <label>Adresas (gatvė, namo nr.)<span className="req">*</span></label>
               <input
                 type="text"
                 value={form.address}

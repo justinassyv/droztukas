@@ -41,6 +41,67 @@ if (!PAYSERA_ENABLED) {
   console.warn("[paysera] not configured — set PAYSERA_PROJECT_ID and PAYSERA_SIGN_PASSWORD in .env");
 }
 
+// --- LP Express terminal list ---------------------------------------------
+const LPEXPRESS_USERNAME = process.env.LPEXPRESS_USERNAME || "";
+const LPEXPRESS_PASSWORD = process.env.LPEXPRESS_PASSWORD || "";
+const LPEXPRESS_ENABLED = !!(LPEXPRESS_USERNAME && LPEXPRESS_PASSWORD);
+const LPEXPRESS_API = "https://api.lpexpress.lt";
+
+if (!LPEXPRESS_ENABLED) {
+  console.warn("[lpexpress] not configured — set LPEXPRESS_USERNAME and LPEXPRESS_PASSWORD in .env");
+}
+
+let lpTokenCache = { token: "", expiresAt: 0 };
+let lpTerminalsCache = { data: [], fetchedAt: 0 };
+const LP_TERMINALS_TTL = 6 * 60 * 60 * 1000; // 6h — terminal list barely changes
+
+async function lpGetToken() {
+  const now = Date.now();
+  if (lpTokenCache.token && now < lpTokenCache.expiresAt) return lpTokenCache.token;
+
+  const res = await fetch(LPEXPRESS_API + "/v2/user/login", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ username: LPEXPRESS_USERNAME, password: LPEXPRESS_PASSWORD }),
+  });
+  if (!res.ok) throw new Error("LP Express auth failed: " + res.status);
+  const data = await res.json();
+  const token = data.token || data.access_token || data.jwt;
+  if (!token) throw new Error("LP Express auth response missing token");
+
+  lpTokenCache = { token, expiresAt: now + 50 * 60 * 1000 }; // refresh ~10min before typical 1h expiry
+  return token;
+}
+
+async function lpFetchTerminals() {
+  const now = Date.now();
+  if (lpTerminalsCache.data.length && now - lpTerminalsCache.fetchedAt < LP_TERMINALS_TTL) {
+    return lpTerminalsCache.data;
+  }
+
+  const token = await lpGetToken();
+  const res = await fetch(LPEXPRESS_API + "/v2/self-service-terminals", {
+    headers: { Authorization: "Bearer " + token },
+  });
+  if (!res.ok) throw new Error("LP Express terminals fetch failed: " + res.status);
+  const json = await res.json();
+  const list = Array.isArray(json) ? json : json.data || json.terminals || [];
+
+  const terminals = list
+    .filter((t) => (t.countryCode || t.country || "LT") === "LT")
+    .map((t) => ({
+      id: String(t.id ?? t.code ?? t.terminalId ?? ""),
+      name: t.name || t.terminalName || "",
+      address: t.address || t.street || "",
+      city: t.city || t.locality || "",
+    }))
+    .filter((t) => t.id && t.name);
+
+  lpTerminalsCache = { data: terminals, fetchedAt: now };
+  return terminals;
+}
+// --- end LP Express --------------------------------------------------------
+
 const SESSION_SECRET = process.env.SESSION_SECRET || "";
 const COOKIE_SECURE = process.env.COOKIE_SECURE === "true";
 const ADMIN_USER = process.env.ADMIN_USER || "";
@@ -204,14 +265,19 @@ function validate(b) {
     company: sanitize(b.company, 200),
     vat: sanitize(b.vat, 40),
     notes: sanitize(b.notes, 1000),
+    terminalId: sanitize(b.terminalId, 40),
+    terminalName: sanitize(b.terminalName, 200),
   };
 
   if (form.name.length < 2) errors.name = "Įveskite vardą ir pavardę";
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) errors.email = "Neteisingas el. paštas";
   if (!/^\d{8,}$/.test(form.phone.replace(/\D/g, ""))) errors.phone = "Neteisingas telefono numeris";
-  if (delivery !== "atsiimti") {
+  if (delivery === "kurjeris") {
     if (!form.address) errors.address = "Nurodykite adresą";
     if (!form.city) errors.city = "Nurodykite miestą";
+  }
+  if (delivery === "lp-paststomatas") {
+    if (!form.terminalId || !form.terminalName) errors.terminalId = "Pasirinkite paštomatą";
   }
   if (needInvoice) {
     if (!form.company) errors.company = "Įmonės pavadinimas privalomas";
@@ -234,7 +300,9 @@ function orderEmailText(o) {
     "Kiekis: " + o.qty + " vnt. x " + o.unitPrice.toFixed(2) + " EUR",
     "Pristatymas: " + o.deliveryTitle + " (" + o.shipping.toFixed(2) + " EUR)",
   ];
-  if (o.delivery !== "atsiimti") {
+  if (o.delivery === "lp-paststomatas" && o.terminalName) {
+    lines.push("Paštomatas: " + o.terminalName);
+  } else if (o.delivery !== "atsiimti") {
     lines.push("Adresas: " + o.address + ", " + o.city + " " + (o.postal || ""));
   }
   lines.push("", "Iš viso: " + o.total.toFixed(2) + " EUR", "");
@@ -253,6 +321,19 @@ function isRateLimited(ip) {
 function markRequest(ip) {
   recentByIp.set(ip, Date.now());
 }
+
+app.get("/api/terminals", async (_req, res) => {
+  if (!LPEXPRESS_ENABLED) {
+    return res.status(503).json({ ok: false, error: "not_configured", terminals: [] });
+  }
+  try {
+    const terminals = await lpFetchTerminals();
+    res.json({ ok: true, terminals });
+  } catch (err) {
+    console.error("[lpexpress] terminals failed:", err.message);
+    res.status(502).json({ ok: false, error: "fetch_failed", terminals: [] });
+  }
+});
 
 app.post("/api/order", async (req, res) => {
   const fwd = (req.headers["x-forwarded-for"] || "").toString();

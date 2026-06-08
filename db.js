@@ -21,6 +21,14 @@ db.pragma("synchronous = NORMAL");
     db.exec("ALTER TABLE orders ADD COLUMN paysera_ref TEXT");
     console.log("[db] migrated: added paysera_ref column");
   }
+  if (!cols.includes("terminalId")) {
+    db.exec("ALTER TABLE orders ADD COLUMN terminalId TEXT");
+    console.log("[db] migrated: added terminalId column");
+  }
+  if (!cols.includes("terminalName")) {
+    db.exec("ALTER TABLE orders ADD COLUMN terminalName TEXT");
+    console.log("[db] migrated: added terminalName column");
+  }
 }
 
 db.exec(`
@@ -69,11 +77,13 @@ const insertStmt = db.prepare(`
   INSERT INTO orders (
     num, createdAt, updatedAt, status, ip, qty, unitPrice,
     delivery, deliveryTitle, shipping, subtotal, total, needInvoice,
-    name, email, phone, address, city, postal, company, vat, notes
+    name, email, phone, address, city, postal, company, vat, notes,
+    terminalId, terminalName
   ) VALUES (
     @num, @createdAt, @updatedAt, @status, @ip, @qty, @unitPrice,
     @delivery, @deliveryTitle, @shipping, @subtotal, @total, @needInvoice,
-    @name, @email, @phone, @address, @city, @postal, @company, @vat, @notes
+    @name, @email, @phone, @address, @city, @postal, @company, @vat, @notes,
+    @terminalId, @terminalName
   )
 `);
 
@@ -121,6 +131,8 @@ function insertOrder(order) {
     company: order.company || null,
     vat: order.vat || null,
     notes: order.notes || null,
+    terminalId: order.terminalId || null,
+    terminalName: order.terminalName || null,
   };
 
   for (let attempt = 0; attempt < 3; attempt++) {
