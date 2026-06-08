@@ -44,11 +44,6 @@ if (!PAYSERA_ENABLED) {
 // --- LP Express terminal list ---------------------------------------------
 const LPEXPRESS_USERNAME = process.env.LPEXPRESS_USERNAME || "";
 const LPEXPRESS_PASSWORD = process.env.LPEXPRESS_PASSWORD || "";
-// OAuth2 "API client" credentials issued separately from your account login —
-// look for "Client ID" / "Client Secret" (or "Consumer Key/Secret") in the
-// Mano siuntos integration/API settings.
-const LPEXPRESS_CLIENT_ID = process.env.LPEXPRESS_CLIENT_ID || "";
-const LPEXPRESS_CLIENT_SECRET = process.env.LPEXPRESS_CLIENT_SECRET || "";
 const LPEXPRESS_ENABLED = !!(LPEXPRESS_USERNAME && LPEXPRESS_PASSWORD);
 const LPEXPRESS_API = process.env.LPEXPRESS_TEST === "1"
   ? "https://api-manosiuntostst.post.lt"
@@ -66,20 +61,17 @@ async function lpGetToken() {
   const now = Date.now();
   if (lpTokenCache.token && now < lpTokenCache.expiresAt) return lpTokenCache.token;
 
-  // OAuth2 password grant — see https://www.post.lt/savitarna/api_doc.html
+  // OAuth2 password grant — per official Postman collection, "noauth" (no Basic Auth header),
+  // but requires clientSystem=PUBLIC alongside the usual grant params.
   const params = new URLSearchParams({
     grant_type: "password",
+    clientSystem: "PUBLIC",
     username: LPEXPRESS_USERNAME,
     password: LPEXPRESS_PASSWORD,
     scope: "read write API_CLIENT",
   });
-  const headers = {};
-  if (LPEXPRESS_CLIENT_ID || LPEXPRESS_CLIENT_SECRET) {
-    headers.Authorization = "Basic " + Buffer.from(LPEXPRESS_CLIENT_ID + ":" + LPEXPRESS_CLIENT_SECRET).toString("base64");
-  }
   const res = await fetch(LPEXPRESS_API + "/oauth/token?" + params.toString(), {
     method: "POST",
-    headers,
   });
   if (!res.ok) {
     const body = await res.text().catch(() => "");
@@ -103,7 +95,8 @@ async function lpFetchTerminals() {
   }
 
   const token = await lpGetToken();
-  const res = await fetch(LPEXPRESS_API + "/api/v2/terminal/list", {
+  const params = new URLSearchParams({ receiverCountryCode: "LT", size: "2000" });
+  const res = await fetch(LPEXPRESS_API + "/api/v2/terminal?" + params.toString(), {
     headers: { Authorization: "Bearer " + token },
   });
   if (!res.ok) {
@@ -111,17 +104,21 @@ async function lpFetchTerminals() {
     throw new Error("LP Express terminals fetch failed: " + res.status + " " + body.slice(0, 300));
   }
   const json = await res.json();
-  const list = Array.isArray(json) ? json : json.data || json.terminals || [];
+  const list = Array.isArray(json) ? json : json.data || json.terminals || json.content || [];
+  if (list.length) console.log("[lpexpress] sample terminal raw shape:", JSON.stringify(list[0]).slice(0, 500));
 
   const terminals = list
     .filter((t) => (t.countryCode || t.country || "LT") === "LT")
-    .map((t) => ({
-      id: String(t.id ?? t.code ?? t.terminalId ?? ""),
-      name: t.name || t.terminalName || "",
-      address: t.address || t.street || "",
-      city: t.city || t.locality || "",
-    }))
-    .filter((t) => t.id && t.name);
+    .map((t) => {
+      const addr = t.address || t.location || t;
+      return {
+        id: String(t.id ?? t.code ?? t.terminalId ?? ""),
+        name: t.name || t.title || t.terminalName || addr.name || addr.title || "",
+        address: addr.street || addr.address || addr.address1 || t.address || "",
+        city: addr.locality || addr.city || addr.municipality || t.city || "",
+      };
+    })
+    .filter((t) => t.id);
 
   lpTerminalsCache = { data: terminals, fetchedAt: now };
   return terminals;

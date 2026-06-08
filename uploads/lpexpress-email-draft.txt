@@ -1,0 +1,22 @@
+To: api-manosiuntos@post.lt
+Subject: Savitarnos terminalų (paštomatų) sąrašo gavimas integracijai (TEST aplinka)
+
+Sveiki,
+
+Integruoju LP Express / Mano siuntos API į savo internetinę parduotuvę (drozk.lt), TEST aplinkoje (api-manosiuntostst.post.lt).
+
+Tikslas: užsakymo formoje parodyti klientui paieškos lauką, kuriame jis galėtų pasirinkti norimą savitarnos terminalą (paštomatą) pagal miestą/adresą — t. y. parodyti terminalo pavadinimą ir adresą, o ne tik ID.
+
+Pastebėjau, kad TerminalOperations -> estimate (GET /api/v2/terminal) grąžina tik EstimatedTerminal objektus su laukais id ir countryCode — be pavadinimo, adreso ar miesto, todėl šis endpoint'as netinka rodyti sąrašui klientui.
+
+Klausimas: koks yra tinkamiausias būdas gauti pilną savitarnos terminalų sąrašą su pavadinimais ir adresais (id, name/title, address, city/locality), kad galėčiau juos parodyti užsakymo formoje? Galbūt yra atskiras viešas terminalų sąrašo failas/feed'as (JSON/CSV/XML), skirtas būtent tokiai integracijai, ar reikėtų naudoti kitą endpoint'ą?
+
+Taip pat būčiau dėkingas, jei galėtumėte patvirtinti, ar mano TEST aplinkos prieigos duomenys (vartotojo vardas + slaptažodis + Client ID/Secret) jau pilnai suaktyvinti.
+
+Iš anksto dėkoju!
+
+Pagarbiai,
+Justas
+J. Šyvoko individuali veikla, Nr. 1392319
+info@just2.lt
++370 675 12 705
