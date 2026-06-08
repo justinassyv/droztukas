@@ -61,18 +61,26 @@ async function lpGetToken() {
   const now = Date.now();
   if (lpTokenCache.token && now < lpTokenCache.expiresAt) return lpTokenCache.token;
 
-  const res = await fetch(LPEXPRESS_API + "/v2/user/login", {
+  // OAuth2 password grant — see https://www.post.lt/savitarna/api_doc.html
+  const params = new URLSearchParams({
+    grant_type: "password",
+    username: LPEXPRESS_USERNAME,
+    password: LPEXPRESS_PASSWORD,
+    scope: "read write API_CLIENT",
+  });
+  const res = await fetch(LPEXPRESS_API + "/oauth/token?" + params.toString(), {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ username: LPEXPRESS_USERNAME, password: LPEXPRESS_PASSWORD }),
   });
   if (!res.ok) throw new Error("LP Express auth failed: " + res.status);
   const data = await res.json();
-  const token = data.token || data.access_token || data.jwt;
-  if (!token) throw new Error("LP Express auth response missing token");
+  if (!data.access_token) throw new Error("LP Express auth response missing access_token");
 
-  lpTokenCache = { token, expiresAt: now + 50 * 60 * 1000 }; // refresh ~10min before typical 1h expiry
-  return token;
+  lpTokenCache = {
+    token: data.access_token,
+    // refresh ~10min before the token's actual expiry
+    expiresAt: now + Math.max(60, (data.expires_in || 3600) - 600) * 1000,
+  };
+  return lpTokenCache.token;
 }
 
 async function lpFetchTerminals() {
@@ -82,7 +90,7 @@ async function lpFetchTerminals() {
   }
 
   const token = await lpGetToken();
-  const res = await fetch(LPEXPRESS_API + "/v2/self-service-terminals", {
+  const res = await fetch(LPEXPRESS_API + "/api/v2/terminal/list", {
     headers: { Authorization: "Bearer " + token },
   });
   if (!res.ok) throw new Error("LP Express terminals fetch failed: " + res.status);
