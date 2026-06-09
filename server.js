@@ -190,8 +190,8 @@ async function lpCreateParcel(order) {
       weight: order.qty * PRODUCT_UNIT_WEIGHT_G,
     },
     sender: {
+      name: LPEXPRESS_SENDER_NAME,
       contacts: {
-        name: LPEXPRESS_SENDER_NAME,
         phone: lpNormalizePhone(LPEXPRESS_SENDER_PHONE),
       },
       address: {
@@ -202,8 +202,8 @@ async function lpCreateParcel(order) {
       },
     },
     receiver: {
+      name: order.name,
       contacts: {
-        name: order.name,
         phone: lpNormalizePhone(order.phone),
       },
       address: {
