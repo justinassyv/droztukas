@@ -245,8 +245,9 @@ async function lpCreateParcel(order) {
 // Downloads the shipping label PDF for a parcel ID.
 async function lpGetLabel(parcelId) {
   const token = await lpGetToken();
+  const params = new URLSearchParams({ parcelIds: parcelId, layout: "LAYOUT_10x15", labelOrientation: "PORTRAIT" });
   const res = await fetch(
-    LPEXPRESS_API + "/api/v2/parcel/" + encodeURIComponent(parcelId) + "/sticker",
+    LPEXPRESS_API + "/api/v2/sticker/pdf?" + params.toString(),
     { headers: { Authorization: "Bearer " + token } },
   );
   if (!res.ok) {
