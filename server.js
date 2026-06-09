@@ -642,6 +642,7 @@ app.get("/payment/callback", (req, res) => {
         if (order.delivery === "lp-paststomatas" && LPEXPRESS_ENABLED) {
           try {
             const parcelId = await lpCreateParcel(order);
+            await new Promise((r) => setTimeout(r, 2000));
             labelPdf = await lpGetLabel(parcelId);
             console.log("[lpexpress] label ready for order", order.num, "parcel", parcelId);
           } catch (err) {
