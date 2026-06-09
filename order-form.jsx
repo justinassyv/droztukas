@@ -91,10 +91,8 @@ function OrderForm() {
     if (!form.name.trim() || form.name.trim().length < 2) e.name = "Įveskite vardą ir pavardę";
     if (!form.email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) e.email = "Neteisingas el. pašto adresas";
     if (!form.phone.replace(/\D/g, "").match(/^\d{8,}$/)) e.phone = "Įveskite telefono numerį";
-    if (delivery === "kurjeris" || needInvoice) {
-      if (!form.address.trim()) e.address = "Nurodykite adresą";
-      if (!form.city.trim()) e.city = "Nurodykite miestą";
-    }
+    if (!form.address.trim()) e.address = "Nurodykite adresą";
+    if (!form.city.trim()) e.city = "Nurodykite miestą";
     if (delivery === "lp-paststomatas") {
       if (!form.terminalId) e.terminalId = "Pasirinkite paštomatą";
     }
@@ -281,6 +279,40 @@ function OrderForm() {
           {errors.email && <div className="err">{errors.email}</div>}
         </div>
 
+        <div className="field">
+          <label>Adresas (gatvė, namo nr.)<span className="req">*</span></label>
+          <input
+            type="text"
+            value={form.address}
+            onChange={(e) => setField("address", e.target.value)}
+            placeholder="Pvz., Vilniaus g. 25-3"
+            className={errors.address ? "invalid" : ""}
+          />
+          {errors.address && <div className="err">{errors.address}</div>}
+        </div>
+        <div className="row2">
+          <div className="field">
+            <label>Miestas<span className="req">*</span></label>
+            <input
+              type="text"
+              value={form.city}
+              onChange={(e) => setField("city", e.target.value)}
+              placeholder="Vilnius"
+              className={errors.city ? "invalid" : ""}
+            />
+            {errors.city && <div className="err">{errors.city}</div>}
+          </div>
+          <div className="field">
+            <label>Pašto kodas</label>
+            <input
+              type="text"
+              value={form.postal}
+              onChange={(e) => setField("postal", e.target.value)}
+              placeholder="LT-01108"
+            />
+          </div>
+        </div>
+
         {delivery === "lp-paststomatas" && (
           <div className="field">
             <label>LP Express paštomatas<span className="req">*</span></label>
@@ -329,43 +361,6 @@ function OrderForm() {
           </div>
         )}
 
-        {(delivery === "kurjeris" || needInvoice) && (
-          <>
-            <div className="field">
-              <label>Adresas (gatvė, namo nr.)<span className="req">*</span></label>
-              <input
-                type="text"
-                value={form.address}
-                onChange={(e) => setField("address", e.target.value)}
-                placeholder="Pvz., Vilniaus g. 25-3"
-                className={errors.address ? "invalid" : ""}
-              />
-              {errors.address && <div className="err">{errors.address}</div>}
-            </div>
-            <div className="row2">
-              <div className="field">
-                <label>Miestas<span className="req">*</span></label>
-                <input
-                  type="text"
-                  value={form.city}
-                  onChange={(e) => setField("city", e.target.value)}
-                  placeholder="Vilnius"
-                  className={errors.city ? "invalid" : ""}
-                />
-                {errors.city && <div className="err">{errors.city}</div>}
-              </div>
-              <div className="field">
-                <label>Pašto kodas</label>
-                <input
-                  type="text"
-                  value={form.postal}
-                  onChange={(e) => setField("postal", e.target.value)}
-                  placeholder="LT-01108"
-                />
-              </div>
-            </div>
-          </>
-        )}
 
         {/* Invoice */}
         <label className="checkbox">
