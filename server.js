@@ -47,6 +47,9 @@ const LPEXPRESS_PASSWORD = process.env.LPEXPRESS_PASSWORD || "";
 const LPEXPRESS_ENABLED = !!(LPEXPRESS_USERNAME && LPEXPRESS_PASSWORD);
 const LPEXPRESS_SENDER_NAME = process.env.LPEXPRESS_SENDER_NAME || "";
 const LPEXPRESS_SENDER_PHONE = process.env.LPEXPRESS_SENDER_PHONE || "";
+const LPEXPRESS_SENDER_STREET = process.env.LPEXPRESS_SENDER_STREET || "";
+const LPEXPRESS_SENDER_CITY = process.env.LPEXPRESS_SENDER_CITY || "";
+const LPEXPRESS_SENDER_POSTAL = process.env.LPEXPRESS_SENDER_POSTAL || "";
 const LPEXPRESS_API = process.env.LPEXPRESS_TEST === "1"
   ? "https://api-manosiuntostst.post.lt"
   : "https://api-manosiuntos.post.lt";
@@ -168,8 +171,16 @@ async function lpEstimateTerminalPrice(weightGrams) {
   return price;
 }
 
+function lpNormalizePhone(phone) {
+  const digits = phone.replace(/\D/g, "");
+  // Lithuanian local: 8XXXXXXXX (9 digits) → +370XXXXXXXX
+  if (digits.length === 9 && digits.startsWith("8")) return "+370" + digits.slice(1);
+  // Already has country code without +
+  if (digits.length === 11 && digits.startsWith("370")) return "+" + digits;
+  return "+" + digits;
+}
+
 // Creates a T2T (terminal-to-terminal) parcel in LP Express and returns the parcel ID.
-// Response shape may need adjustment once tested against the live API.
 async function lpCreateParcel(order) {
   const token = await lpGetToken();
   const body = {
@@ -179,15 +190,22 @@ async function lpCreateParcel(order) {
       weight: order.qty * PRODUCT_UNIT_WEIGHT_G,
     },
     sender: {
-      name: LPEXPRESS_SENDER_NAME,
-      phone: LPEXPRESS_SENDER_PHONE,
+      contacts: {
+        name: LPEXPRESS_SENDER_NAME,
+        phone: lpNormalizePhone(LPEXPRESS_SENDER_PHONE),
+      },
       address: {
         countryCode: "LT",
+        street: LPEXPRESS_SENDER_STREET,
+        city: LPEXPRESS_SENDER_CITY,
+        postalCode: LPEXPRESS_SENDER_POSTAL,
       },
     },
     receiver: {
-      name: order.name,
-      phone: order.phone.replace(/\s/g, ""),
+      contacts: {
+        name: order.name,
+        phone: lpNormalizePhone(order.phone),
+      },
       address: {
         countryCode: "LT",
         terminalId: order.terminalId,
