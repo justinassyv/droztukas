@@ -47,6 +47,7 @@ const LPEXPRESS_PASSWORD = process.env.LPEXPRESS_PASSWORD || "";
 const LPEXPRESS_ENABLED = !!(LPEXPRESS_USERNAME && LPEXPRESS_PASSWORD);
 const LPEXPRESS_SENDER_NAME = process.env.LPEXPRESS_SENDER_NAME || "";
 const LPEXPRESS_SENDER_PHONE = process.env.LPEXPRESS_SENDER_PHONE || "";
+const LPEXPRESS_SENDER_TERMINAL_ID = process.env.LPEXPRESS_SENDER_TERMINAL_ID || "";
 const LPEXPRESS_API = process.env.LPEXPRESS_TEST === "1"
   ? "https://api-manosiuntostst.post.lt"
   : "https://api-manosiuntos.post.lt";
@@ -173,21 +174,27 @@ async function lpEstimateTerminalPrice(weightGrams) {
 async function lpCreateParcel(order) {
   const token = await lpGetToken();
   const body = {
-    senderCountryCode: "LT",
-    receiverCountryCode: "LT",
-    deliveryType: "T2T",
-    partCount: 1,
-    planCode: "TERMINAL",
+    plan: { code: "TERMINAL" },
+    parcel: {
+      partCount: 1,
+      weight: order.qty * PRODUCT_UNIT_WEIGHT_G,
+    },
     sender: {
       name: LPEXPRESS_SENDER_NAME,
       phone: LPEXPRESS_SENDER_PHONE,
+      address: {
+        countryCode: "LT",
+        terminalId: LPEXPRESS_SENDER_TERMINAL_ID,
+      },
     },
     receiver: {
       name: order.name,
       phone: order.phone.replace(/\s/g, ""),
-      terminalId: order.terminalId,
+      address: {
+        countryCode: "LT",
+        terminalId: order.terminalId,
+      },
     },
-    weight: order.qty * PRODUCT_UNIT_WEIGHT_G,
   };
   console.log("[lpexpress] creating parcel for order", order.num, "→ terminal", order.terminalId);
   const res = await fetch(LPEXPRESS_API + "/api/v2/parcel", {
