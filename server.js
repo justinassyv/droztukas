@@ -246,7 +246,7 @@ async function lpCreateParcel(order) {
 async function lpGetLabel(parcelId) {
   const token = await lpGetToken();
   const res = await fetch(
-    LPEXPRESS_API + "/api/v2/parcel/sticker?id=" + encodeURIComponent(parcelId),
+    LPEXPRESS_API + "/api/v2/parcel/" + encodeURIComponent(parcelId) + "/sticker",
     { headers: { Authorization: "Bearer " + token } },
   );
   if (!res.ok) {
