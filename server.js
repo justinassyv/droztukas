@@ -216,6 +216,7 @@ async function lpCreateParcel(order) {
     "| sender phone raw:", LPEXPRESS_SENDER_PHONE, "→", lpNormalizePhone(LPEXPRESS_SENDER_PHONE),
     "| receiver phone raw:", order.phone, "→", lpNormalizePhone(order.phone),
     "| street:", JSON.stringify(LPEXPRESS_SENDER_STREET));
+  console.log("[lpexpress] parcel request body:", JSON.stringify(body));
   const res = await fetch(LPEXPRESS_API + "/api/v2/parcel", {
     method: "POST",
     headers: {
