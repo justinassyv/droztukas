@@ -45,6 +45,8 @@ if (!PAYSERA_ENABLED) {
 const LPEXPRESS_USERNAME = process.env.LPEXPRESS_USERNAME || "";
 const LPEXPRESS_PASSWORD = process.env.LPEXPRESS_PASSWORD || "";
 const LPEXPRESS_ENABLED = !!(LPEXPRESS_USERNAME && LPEXPRESS_PASSWORD);
+const LPEXPRESS_SENDER_NAME = process.env.LPEXPRESS_SENDER_NAME || "";
+const LPEXPRESS_SENDER_PHONE = process.env.LPEXPRESS_SENDER_PHONE || "";
 const LPEXPRESS_API = process.env.LPEXPRESS_TEST === "1"
   ? "https://api-manosiuntostst.post.lt"
   : "https://api-manosiuntos.post.lt";
@@ -164,6 +166,58 @@ async function lpEstimateTerminalPrice(weightGrams) {
   const price = Math.min(...prices);
   lpPriceCache.set(weightGrams, { price, fetchedAt: now });
   return price;
+}
+
+// Creates a T2T (terminal-to-terminal) parcel in LP Express and returns the parcel ID.
+// Response shape may need adjustment once tested against the live API.
+async function lpCreateParcel(order) {
+  const token = await lpGetToken();
+  const body = {
+    senderCountryCode: "LT",
+    receiverCountryCode: "LT",
+    deliveryType: "T2T",
+    partCount: 1,
+    planCode: "TERMINAL",
+    sender: {
+      name: LPEXPRESS_SENDER_NAME,
+      phone: LPEXPRESS_SENDER_PHONE,
+    },
+    receiver: {
+      name: order.name,
+      phone: order.phone.replace(/\s/g, ""),
+      terminalId: order.terminalId,
+    },
+    weight: order.qty * PRODUCT_UNIT_WEIGHT_G,
+  };
+  console.log("[lpexpress] creating parcel for order", order.num, "→ terminal", order.terminalId);
+  const res = await fetch(LPEXPRESS_API + "/api/v2/parcel", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: "Bearer " + token,
+    },
+    body: JSON.stringify(body),
+  });
+  const json = await res.json().catch(() => ({}));
+  console.log("[lpexpress] parcel create response:", JSON.stringify(json).slice(0, 500));
+  if (!res.ok) throw new Error("LP Express parcel create failed: " + res.status);
+  const id = json.id || json.parcelId || (Array.isArray(json) && json[0]?.id);
+  if (!id) throw new Error("LP Express parcel create: no ID in response");
+  return String(id);
+}
+
+// Downloads the shipping label PDF for a parcel ID.
+async function lpGetLabel(parcelId) {
+  const token = await lpGetToken();
+  const res = await fetch(
+    LPEXPRESS_API + "/api/v2/parcel/sticker?id=" + encodeURIComponent(parcelId),
+    { headers: { Authorization: "Bearer " + token } },
+  );
+  if (!res.ok) {
+    const body = await res.text().catch(() => "");
+    throw new Error("LP Express label fetch failed: " + res.status + " " + body.slice(0, 200));
+  }
+  return Buffer.from(await res.arrayBuffer());
 }
 // --- end LP Express --------------------------------------------------------
 
@@ -543,20 +597,35 @@ app.get("/payment/callback", (req, res) => {
   if (data.status === "1") {
     const orderNum = data.orderid;
     const order = db.markOrderPaid(orderNum, data.requestid || null);
-
-    if (order && transporter && NOTIFY_EMAIL) {
-      transporter
-        .sendMail({
-          from: process.env.SMTP_FROM || process.env.SMTP_USER,
-          to: NOTIFY_EMAIL,
-          replyTo: order.email,
-          subject: "Apmokėtas užsakymas " + order.num + " — Drožtukas",
-          text: "APMOKĖTA\n\n" + orderEmailText(order),
-        })
-        .catch((err) => console.error("[smtp] send failed:", err.message));
-    }
-
     console.log("[paysera] order paid:", orderNum);
+
+    if (order) {
+      (async () => {
+        let labelPdf = null;
+        if (order.delivery === "lp-paststomatas" && LPEXPRESS_ENABLED) {
+          try {
+            const parcelId = await lpCreateParcel(order);
+            labelPdf = await lpGetLabel(parcelId);
+            console.log("[lpexpress] label ready for order", order.num, "parcel", parcelId);
+          } catch (err) {
+            console.error("[lpexpress] parcel/label failed:", err.message);
+          }
+        }
+        if (transporter && NOTIFY_EMAIL) {
+          const mail = {
+            from: process.env.SMTP_FROM || process.env.SMTP_USER,
+            to: NOTIFY_EMAIL,
+            replyTo: order.email,
+            subject: "Apmokėtas užsakymas " + order.num + " — Drožtukas",
+            text: "APMOKĖTA\n\n" + orderEmailText(order),
+          };
+          if (labelPdf) {
+            mail.attachments = [{ filename: "lipdukas-" + order.num + ".pdf", content: labelPdf }];
+          }
+          transporter.sendMail(mail).catch((err) => console.error("[smtp] send failed:", err.message));
+        }
+      })();
+    }
   }
 
   // Paysera requires exactly "OK" response
