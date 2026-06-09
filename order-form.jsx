@@ -182,7 +182,7 @@ function OrderForm() {
             width: 86, height: 86, borderRadius: 10, overflow: "hidden",
             border: "1px solid var(--line)", flexShrink: 0, background: "#fff"
           }}>
-            <img src="assets/droztukas-carbon.webp" alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+            <img src="assets/droztukas-hero.jpg" alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
           </div>
           <div style={{ fontSize: 13, color: "var(--muted)", lineHeight: 1.5 }}>
             Profesionalus drožtukas Ø 68 mm elektros dėžutėms. Su pirma keičiama geležte ir varžtais.
