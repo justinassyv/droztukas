@@ -243,6 +243,20 @@ async function lpCreateParcel(order) {
   return String(id);
 }
 
+// Initiates shipping for a created parcel (required before sticker can be fetched).
+async function lpInitiateShipping(parcelId) {
+  const token = await lpGetToken();
+  const res = await fetch(LPEXPRESS_API + "/api/v2/shipping/initiate?processAsync=false", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: "Bearer " + token },
+    body: JSON.stringify({ parcelIds: [Number(parcelId)] }),
+  });
+  const json = await res.json().catch(() => ({}));
+  console.log("[lpexpress] initiate response:", JSON.stringify(json).slice(0, 300));
+  if (!res.ok) throw new Error("LP Express initiate failed: " + res.status);
+  return json.requestId;
+}
+
 // Downloads the shipping label PDF for a parcel ID.
 async function lpGetLabel(parcelId, idRef) {
   const token = await lpGetToken();
@@ -643,7 +657,7 @@ app.get("/payment/callback", (req, res) => {
         if (order.delivery === "lp-paststomatas" && LPEXPRESS_ENABLED) {
           try {
             const parcelId = await lpCreateParcel(order);
-            await new Promise((r) => setTimeout(r, 2000));
+            await lpInitiateShipping(parcelId);
             labelPdf = await lpGetLabel(parcelId, order.num);
             console.log("[lpexpress] label ready for order", order.num, "parcel", parcelId);
           } catch (err) {
