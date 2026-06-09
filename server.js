@@ -439,7 +439,7 @@ function validate(b) {
   if (form.name.length < 2) errors.name = "Įveskite vardą ir pavardę";
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) errors.email = "Neteisingas el. paštas";
   if (!/^\d{8,}$/.test(form.phone.replace(/\D/g, ""))) errors.phone = "Neteisingas telefono numeris";
-  if (delivery === "kurjeris") {
+  if (delivery === "kurjeris" || needInvoice) {
     if (!form.address) errors.address = "Nurodykite adresą";
     if (!form.city) errors.city = "Nurodykite miestą";
   }

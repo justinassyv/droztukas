@@ -91,7 +91,7 @@ function OrderForm() {
     if (!form.name.trim() || form.name.trim().length < 2) e.name = "Įveskite vardą ir pavardę";
     if (!form.email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) e.email = "Neteisingas el. pašto adresas";
     if (!form.phone.replace(/\D/g, "").match(/^\d{8,}$/)) e.phone = "Įveskite telefono numerį";
-    if (delivery === "kurjeris") {
+    if (delivery === "kurjeris" || needInvoice) {
       if (!form.address.trim()) e.address = "Nurodykite adresą";
       if (!form.city.trim()) e.city = "Nurodykite miestą";
     }
@@ -329,7 +329,7 @@ function OrderForm() {
           </div>
         )}
 
-        {delivery === "kurjeris" && (
+        {(delivery === "kurjeris" || needInvoice) && (
           <>
             <div className="field">
               <label>Adresas (gatvė, namo nr.)<span className="req">*</span></label>
