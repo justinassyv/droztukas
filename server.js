@@ -171,6 +171,14 @@ async function lpEstimateTerminalPrice(weightGrams) {
   return price;
 }
 
+function lpParcelSize(weightGrams) {
+  if (weightGrams <= 1000) return "XS";
+  if (weightGrams <= 5000) return "S";
+  if (weightGrams <= 10000) return "M";
+  if (weightGrams <= 20000) return "L";
+  return "XL";
+}
+
 function lpNormalizePhone(phone) {
   const digits = phone.replace(/\D/g, "");
   // Lithuanian local: 8XXXXXXXX (9 digits) → +370XXXXXXXX
@@ -188,6 +196,7 @@ async function lpCreateParcel(order) {
     parcel: {
       partCount: 1,
       weight: order.qty * PRODUCT_UNIT_WEIGHT_G,
+      type: lpParcelSize(order.qty * PRODUCT_UNIT_WEIGHT_G),
     },
     sender: {
       name: LPEXPRESS_SENDER_NAME,
