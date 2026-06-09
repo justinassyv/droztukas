@@ -192,6 +192,7 @@ function lpNormalizePhone(phone) {
 async function lpCreateParcel(order) {
   const token = await lpGetToken();
   const body = {
+    idRef: order.num,
     plan: { code: "TERMINAL" },
     parcel: {
       type: "T2T",
@@ -243,9 +244,9 @@ async function lpCreateParcel(order) {
 }
 
 // Downloads the shipping label PDF for a parcel ID.
-async function lpGetLabel(parcelId) {
+async function lpGetLabel(parcelId, idRef) {
   const token = await lpGetToken();
-  const params = new URLSearchParams({ parcelIds: parcelId, layout: "LAYOUT_10x15", labelOrientation: "PORTRAIT" });
+  const params = new URLSearchParams({ parcelIds: parcelId, idRefs: idRef, layout: "LAYOUT_10x15", labelOrientation: "PORTRAIT" });
   const res = await fetch(
     LPEXPRESS_API + "/api/v2/sticker/pdf?" + params.toString(),
     { headers: { Authorization: "Bearer " + token } },
@@ -643,7 +644,7 @@ app.get("/payment/callback", (req, res) => {
           try {
             const parcelId = await lpCreateParcel(order);
             await new Promise((r) => setTimeout(r, 2000));
-            labelPdf = await lpGetLabel(parcelId);
+            labelPdf = await lpGetLabel(parcelId, order.num);
             console.log("[lpexpress] label ready for order", order.num, "parcel", parcelId);
           } catch (err) {
             console.error("[lpexpress] parcel/label failed:", err.message);
