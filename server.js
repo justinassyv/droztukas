@@ -47,7 +47,6 @@ const LPEXPRESS_PASSWORD = process.env.LPEXPRESS_PASSWORD || "";
 const LPEXPRESS_ENABLED = !!(LPEXPRESS_USERNAME && LPEXPRESS_PASSWORD);
 const LPEXPRESS_SENDER_NAME = process.env.LPEXPRESS_SENDER_NAME || "";
 const LPEXPRESS_SENDER_PHONE = process.env.LPEXPRESS_SENDER_PHONE || "";
-const LPEXPRESS_SENDER_TERMINAL_ID = process.env.LPEXPRESS_SENDER_TERMINAL_ID || "";
 const LPEXPRESS_API = process.env.LPEXPRESS_TEST === "1"
   ? "https://api-manosiuntostst.post.lt"
   : "https://api-manosiuntos.post.lt";
@@ -184,7 +183,6 @@ async function lpCreateParcel(order) {
       phone: LPEXPRESS_SENDER_PHONE,
       address: {
         countryCode: "LT",
-        terminalId: LPEXPRESS_SENDER_TERMINAL_ID,
       },
     },
     receiver: {
