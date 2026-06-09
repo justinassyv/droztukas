@@ -194,9 +194,9 @@ async function lpCreateParcel(order) {
   const body = {
     plan: { code: "TERMINAL" },
     parcel: {
-      partCount: 1,
+      type: "T2T",
+      size: lpParcelSize(order.qty * PRODUCT_UNIT_WEIGHT_G),
       weight: order.qty * PRODUCT_UNIT_WEIGHT_G,
-      type: lpParcelSize(order.qty * PRODUCT_UNIT_WEIGHT_G),
     },
     sender: {
       name: LPEXPRESS_SENDER_NAME,
