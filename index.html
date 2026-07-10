@@ -38,9 +38,40 @@
     "priceCurrency": "EUR",
     "price": "12.00",
     "priceValidUntil": "2027-12-31",
+    "validFrom": "2026-07-10",
     "availability": "https://schema.org/InStock",
     "itemCondition": "https://schema.org/NewCondition",
-    "seller": { "@type": "Organization", "name": "Drožtukas" }
+    "seller": { "@type": "Organization", "name": "Drožtukas" },
+    "shippingDetails": [
+      {
+        "@type": "OfferShippingDetails",
+        "shippingRate": { "@type": "MonetaryAmount", "value": "2.99", "currency": "EUR" },
+        "shippingDestination": { "@type": "DefinedRegion", "addressCountry": "LT" },
+        "deliveryTime": {
+          "@type": "ShippingDeliveryTime",
+          "handlingTime": { "@type": "QuantitativeValue", "minValue": 0, "maxValue": 1, "unitCode": "DAY" },
+          "transitTime": { "@type": "QuantitativeValue", "minValue": 1, "maxValue": 2, "unitCode": "DAY" }
+        }
+      },
+      {
+        "@type": "OfferShippingDetails",
+        "shippingRate": { "@type": "MonetaryAmount", "value": "4.99", "currency": "EUR" },
+        "shippingDestination": { "@type": "DefinedRegion", "addressCountry": "LT" },
+        "deliveryTime": {
+          "@type": "ShippingDeliveryTime",
+          "handlingTime": { "@type": "QuantitativeValue", "minValue": 0, "maxValue": 1, "unitCode": "DAY" },
+          "transitTime": { "@type": "QuantitativeValue", "minValue": 1, "maxValue": 2, "unitCode": "DAY" }
+        }
+      }
+    ],
+    "hasMerchantReturnPolicy": {
+      "@type": "MerchantReturnPolicy",
+      "applicableCountry": "LT",
+      "returnPolicyCategory": "https://schema.org/MerchantReturnFiniteReturnWindow",
+      "merchantReturnDays": 14,
+      "returnMethod": "https://schema.org/ReturnByMail",
+      "returnFees": "https://schema.org/FreeReturn"
+    }
   },
   "aggregateRating": {
     "@type": "AggregateRating",
