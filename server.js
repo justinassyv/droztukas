@@ -290,8 +290,7 @@ if (!ADMIN_CONFIGURED) {
 const UNIT_PRICE = 12.0;
 const FREE_SHIPPING_THRESHOLD = 50;
 const DELIVERY_OPTIONS = {
-  "lp-paststomatas": { title: "LP Express paštomatas", price: 2.99 },
-  kurjeris: { title: "Kurjeris į namus", price: 4.99 },
+  "lp-paststomatas": { title: "LP Express paštomatas", price: 2.0 },
   atsiimti: { title: "Atsiėmimas Vilniuje", price: 0 },
 };
 
