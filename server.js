@@ -179,13 +179,24 @@ function lpParcelSize(weightGrams) {
   return "XL";
 }
 
+// Normalize to E.164. LP Express T2T requires a Lithuanian mobile: +3706XXXXXXX.
 function lpNormalizePhone(phone) {
-  const digits = phone.replace(/\D/g, "");
-  // Lithuanian local: 8XXXXXXXX (9 digits) → +370XXXXXXXX
-  if (digits.length === 9 && digits.startsWith("8")) return "+370" + digits.slice(1);
-  // Already has country code without +
+  let digits = String(phone || "").replace(/\D/g, "");
+  if (digits.startsWith("00")) digits = digits.slice(2);
+  // Local trunk prefixes: 8XXXXXXXX or 0XXXXXXXX → national number
+  if (digits.length === 9 && (digits.startsWith("8") || digits.startsWith("0"))) {
+    digits = "370" + digits.slice(1);
+  }
+  // Bare mobile without country code: 6XXXXXXX
+  if (digits.length === 8 && digits.startsWith("6")) {
+    digits = "370" + digits;
+  }
   if (digits.length === 11 && digits.startsWith("370")) return "+" + digits;
-  return "+" + digits;
+  return digits ? "+" + digits : "";
+}
+
+function isLtMobile(phone) {
+  return /^\+3706\d{7}$/.test(lpNormalizePhone(phone));
 }
 
 // Creates a T2T (terminal-to-terminal) parcel in LP Express and returns the parcel ID.
@@ -233,7 +244,14 @@ async function lpCreateParcel(order) {
   });
   const json = await res.json().catch(() => ({}));
   console.log("[lpexpress] parcel create response:", JSON.stringify(json).slice(0, 500));
-  if (!res.ok) throw new Error("LP Express parcel create failed: " + res.status);
+  if (!res.ok) {
+    const errs = Array.isArray(json) ? json : [json];
+    const detail = errs
+      .map((e) => e && (e.error_description || e.error || e.message))
+      .filter(Boolean)
+      .join("; ");
+    throw new Error("LP Express parcel create failed: " + res.status + (detail ? " — " + detail : ""));
+  }
   const id = json.id || json.parcelId || (Array.isArray(json) && json[0]?.id);
   if (!id) throw new Error("LP Express parcel create: no ID in response");
   return String(id);
@@ -437,7 +455,14 @@ function validate(b) {
 
   if (form.name.length < 2) errors.name = "Įveskite vardą ir pavardę";
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) errors.email = "Neteisingas el. paštas";
-  if (!/^\d{8,}$/.test(form.phone.replace(/\D/g, ""))) errors.phone = "Neteisingas telefono numeris";
+  if (delivery === "lp-paststomatas") {
+    // LP Express requires a Lithuanian mobile (+3706XXXXXXX) for terminal delivery
+    if (!isLtMobile(form.phone)) {
+      errors.phone = "Įveskite LT mobilųjį (pvz. +370 600 00000)";
+    }
+  } else if (!/^\d{8,}$/.test(form.phone.replace(/\D/g, ""))) {
+    errors.phone = "Neteisingas telefono numeris";
+  }
   if (!form.address) errors.address = "Nurodykite adresą";
   if (!form.city) errors.city = "Nurodykite miestą";
   if (delivery === "lp-paststomatas") {
@@ -647,6 +672,7 @@ app.get("/payment/callback", (req, res) => {
     if (order) {
       (async () => {
         let labelPdf = null;
+        let labelError = null;
         if (order.delivery === "lp-paststomatas" && LPEXPRESS_ENABLED) {
           try {
             const parcelId = await lpCreateParcel(order);
@@ -654,16 +680,23 @@ app.get("/payment/callback", (req, res) => {
             labelPdf = await lpGetLabel(parcelId, order.num);
             console.log("[lpexpress] label ready for order", order.num, "parcel", parcelId);
           } catch (err) {
+            labelError = err.message;
             console.error("[lpexpress] parcel/label failed:", err.message);
           }
         }
         if (transporter && NOTIFY_EMAIL) {
+          let text = "APMOKĖTA\n\n" + orderEmailText(order);
+          if (labelPdf) {
+            text += "\n\nLipdukas prisegtas.";
+          } else if (labelError) {
+            text += "\n\n⚠️ LIPDUKAS NESUKURTAS — sukurkite rankiniu būdu LP Express:\n" + labelError;
+          }
           const mail = {
             from: process.env.SMTP_FROM || process.env.SMTP_USER,
             to: NOTIFY_EMAIL,
             replyTo: order.email,
-            subject: "Apmokėtas užsakymas " + order.num + " — Drožtukas",
-            text: "APMOKĖTA\n\n" + orderEmailText(order),
+            subject: (labelError ? "⚠️ Be lipduko — " : "") + "Apmokėtas užsakymas " + order.num + " — Drožtukas",
+            text,
           };
           if (labelPdf) {
             mail.attachments = [{ filename: "lipdukas-" + order.num + ".pdf", content: labelPdf }];

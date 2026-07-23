@@ -11,6 +11,23 @@ function formatEUR(n) {
   return new Intl.NumberFormat("lt-LT", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n) + " €";
 }
 
+// LP Express T2T requires Lithuanian mobile +3706XXXXXXX
+function normalizeLtPhone(phone) {
+  let digits = String(phone || "").replace(/\D/g, "");
+  if (digits.startsWith("00")) digits = digits.slice(2);
+  if (digits.length === 9 && (digits.startsWith("8") || digits.startsWith("0"))) {
+    digits = "370" + digits.slice(1);
+  }
+  if (digits.length === 8 && digits.startsWith("6")) {
+    digits = "370" + digits;
+  }
+  return digits.length === 11 && digits.startsWith("370") ? "+" + digits : "";
+}
+
+function isLtMobile(phone) {
+  return /^\+3706\d{7}$/.test(normalizeLtPhone(phone));
+}
+
 function OrderForm() {
   const [qty, setQty] = useState(1);
   const [delivery, setDelivery] = useState(DELIVERY_OPTIONS[0].id);
@@ -90,7 +107,11 @@ function OrderForm() {
     const e = {};
     if (!form.name.trim() || form.name.trim().length < 2) e.name = "Įveskite vardą ir pavardę";
     if (!form.email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) e.email = "Neteisingas el. pašto adresas";
-    if (!form.phone.replace(/\D/g, "").match(/^\d{8,}$/)) e.phone = "Įveskite telefono numerį";
+    if (delivery === "lp-paststomatas") {
+      if (!isLtMobile(form.phone)) e.phone = "Įveskite LT mobilųjį (pvz. +370 600 00000)";
+    } else if (!form.phone.replace(/\D/g, "").match(/^\d{8,}$/)) {
+      e.phone = "Įveskite telefono numerį";
+    }
     if (!form.address.trim()) e.address = "Nurodykite adresą";
     if (!form.city.trim()) e.city = "Nurodykite miestą";
     if (delivery === "lp-paststomatas") {
