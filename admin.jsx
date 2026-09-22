@@ -400,6 +400,7 @@ function OrderCard({ order, busy, onToggle }) {
         <div>
           <div className="lbl">Užsakymas</div>
           <div>{order.qty} vnt. × {formatEUR(order.unitPrice)}</div>
+          {order.bladePack && <div>+ 10 vnt. atsarginių geležčių</div>}
           <div>{order.deliveryTitle} · {order.shipping === 0 ? "nemokamai" : formatEUR(order.shipping)}</div>
         </div>
 

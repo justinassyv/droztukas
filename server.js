@@ -306,6 +306,7 @@ if (!ADMIN_CONFIGURED) {
 }
 
 const UNIT_PRICE = 12.0;
+const BLADE_PACK_PRICE = 3.0;
 const FREE_SHIPPING_THRESHOLD = 50;
 const DELIVERY_OPTIONS = {
   "lp-paststomatas": { title: "LP Express paštomatas", price: 2.0 },
@@ -437,6 +438,7 @@ function validate(b) {
   const qty = Math.max(1, Math.min(99, parseInt(b.qty, 10) || 1));
   const delivery = DELIVERY_OPTIONS[b.delivery] ? b.delivery : "lp-paststomatas";
   const needInvoice = !!b.needInvoice;
+  const bladePack = !!b.bladePack;
   const agree = !!b.agree;
 
   const form = {
@@ -474,7 +476,7 @@ function validate(b) {
   }
   if (!agree) errors.agree = "Sutikite su sąlygomis";
 
-  return { errors, qty, delivery, needInvoice, form };
+  return { errors, qty, delivery, needInvoice, bladePack, form };
 }
 
 function orderEmailText(o) {
@@ -487,8 +489,11 @@ function orderEmailText(o) {
     "Telefonas: " + o.phone,
     "",
     "Kiekis: " + o.qty + " vnt. x " + o.unitPrice.toFixed(2) + " EUR",
-    "Pristatymas: " + o.deliveryTitle + " (" + o.shipping.toFixed(2) + " EUR)",
   ];
+  if (o.bladePack) {
+    lines.push("Priedas: 10 vnt. atsarginių geležčių (" + BLADE_PACK_PRICE.toFixed(2) + " EUR)");
+  }
+  lines.push("Pristatymas: " + o.deliveryTitle + " (" + o.shipping.toFixed(2) + " EUR)");
   if (o.delivery === "lp-paststomatas" && o.terminalName) {
     lines.push("Paštomatas: " + o.terminalName);
   } else if (o.delivery !== "atsiimti") {
@@ -544,7 +549,7 @@ app.post("/api/order", async (req, res) => {
   const fwd = (req.headers["x-forwarded-for"] || "").toString();
   const ip = fwd.split(",")[0].trim() || req.ip || "";
 
-  const { errors, qty, delivery, needInvoice, form } = validate(req.body || {});
+  const { errors, qty, delivery, needInvoice, bladePack, form } = validate(req.body || {});
   if (Object.keys(errors).length > 0) {
     return res.status(400).json({ ok: false, errors });
   }
@@ -556,7 +561,7 @@ app.post("/api/order", async (req, res) => {
   }
   markRequest(ip);
 
-  const subtotal = qty * UNIT_PRICE;
+  const subtotal = qty * UNIT_PRICE + (bladePack ? BLADE_PACK_PRICE : 0);
   let shippingPrice = DELIVERY_OPTIONS[delivery].price;
   if (delivery === "lp-paststomatas" && subtotal < FREE_SHIPPING_THRESHOLD && LPEXPRESS_ENABLED) {
     try {
@@ -579,6 +584,7 @@ app.post("/api/order", async (req, res) => {
     subtotal: Math.round(subtotal * 100) / 100,
     total,
     needInvoice,
+    bladePack,
     ...form,
   };
 

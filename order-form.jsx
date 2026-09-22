@@ -1,6 +1,7 @@
 const { useState, useMemo, useEffect } = React;
 
 const UNIT_PRICE = 12.00;
+const BLADE_PACK_PRICE = 3.00;
 const DELIVERY_OPTIONS = [
   { id: "lp-paststomatas", title: "LP Express paštomatas", sub: "1–2 d. d. · visa Lietuva", price: 2.99 },
   { id: "kurjeris", title: "Kurjeris į namus", sub: "1–2 d. d. · adresu", price: 4.99 },
@@ -32,6 +33,7 @@ function OrderForm() {
   const [qty, setQty] = useState(1);
   const [delivery, setDelivery] = useState(DELIVERY_OPTIONS[0].id);
   const [needInvoice, setNeedInvoice] = useState(false);
+  const [bladePack, setBladePack] = useState(false);
   const [agree, setAgree] = useState(false);
   const [form, setForm] = useState({
     name: "",
@@ -89,7 +91,7 @@ function OrderForm() {
   }, [terminals, terminalQuery]);
 
   const deliveryOpt = DELIVERY_OPTIONS.find((d) => d.id === delivery);
-  const subtotal = qty * UNIT_PRICE;
+  const subtotal = qty * UNIT_PRICE + (bladePack ? BLADE_PACK_PRICE : 0);
   const liveShippingPrice = delivery === "lp-paststomatas" && terminalPrice != null ? terminalPrice : deliveryOpt.price;
   const shipping = subtotal >= 50 ? 0 : liveShippingPrice;
   const total = subtotal + shipping;
@@ -141,7 +143,7 @@ function OrderForm() {
       const res = await fetch("/api/order", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ qty, delivery, needInvoice, agree, ...form }),
+        body: JSON.stringify({ qty, delivery, needInvoice, bladePack, agree, ...form }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok || !data.ok) {
@@ -261,6 +263,12 @@ function OrderForm() {
             </div>
           </div>
         </div>
+
+        {/* Blade pack add-on */}
+        <label className="checkbox">
+          <input type="checkbox" checked={bladePack} onChange={(e) => setBladePack(e.target.checked)} />
+          <span>Pridėti 10 vnt. atsarginių geležčių už {formatEUR(BLADE_PACK_PRICE)} <span style={{ color: "var(--muted)" }}>(perkant kartu su drožtuku)</span></span>
+        </label>
 
         {/* Contact */}
         <div className="row2">
@@ -429,6 +437,9 @@ function OrderForm() {
         <div className="order-total">
           <div>
             <div style={{ color: "var(--muted)" }}>{qty} × {formatEUR(UNIT_PRICE)}</div>
+            {bladePack && (
+              <div style={{ color: "var(--muted)", marginTop: 4 }}>10 vnt. geležčių: {formatEUR(BLADE_PACK_PRICE)}</div>
+            )}
             <div style={{ color: "var(--muted)", marginTop: 4 }}>
               Pristatymas: {
                 subtotal >= 50

@@ -29,6 +29,10 @@ db.pragma("synchronous = NORMAL");
     db.exec("ALTER TABLE orders ADD COLUMN terminalName TEXT");
     console.log("[db] migrated: added terminalName column");
   }
+  if (!cols.includes("bladePack")) {
+    db.exec("ALTER TABLE orders ADD COLUMN bladePack INTEGER NOT NULL DEFAULT 0");
+    console.log("[db] migrated: added bladePack column");
+  }
 }
 
 db.exec(`
@@ -78,12 +82,12 @@ const insertStmt = db.prepare(`
     num, createdAt, updatedAt, status, ip, qty, unitPrice,
     delivery, deliveryTitle, shipping, subtotal, total, needInvoice,
     name, email, phone, address, city, postal, company, vat, notes,
-    terminalId, terminalName
+    terminalId, terminalName, bladePack
   ) VALUES (
     @num, @createdAt, @updatedAt, @status, @ip, @qty, @unitPrice,
     @delivery, @deliveryTitle, @shipping, @subtotal, @total, @needInvoice,
     @name, @email, @phone, @address, @city, @postal, @company, @vat, @notes,
-    @terminalId, @terminalName
+    @terminalId, @terminalName, @bladePack
   )
 `);
 
@@ -100,7 +104,7 @@ const updateStatusStmt = db.prepare(
 
 function rowToOrder(row) {
   if (!row) return undefined;
-  return { ...row, needInvoice: !!row.needInvoice };
+  return { ...row, needInvoice: !!row.needInvoice, bladePack: !!row.bladePack };
 }
 
 function genOrderNum() {
@@ -133,6 +137,7 @@ function insertOrder(order) {
     notes: order.notes || null,
     terminalId: order.terminalId || null,
     terminalName: order.terminalName || null,
+    bladePack: order.bladePack ? 1 : 0,
   };
 
   for (let attempt = 0; attempt < 3; attempt++) {
